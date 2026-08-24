@@ -21,7 +21,24 @@ This monorepo will contain:
 - `scripts/` — development and evaluation tools
 - `docs/` — architecture, operations, privacy, and release documentation
 
-Detailed setup and verification commands will be added with the first runnable vertical slice.
+## Local setup
+
+Docker is the only requirement for the backend development stack:
+
+```bash
+cp .env.example .env
+make dev
+```
+
+The API is then available at `http://localhost:8000`, with interactive OpenAPI documentation at `http://localhost:8000/docs`. See [local development](docs/local-development.md) for service URLs and verification commands.
+
+## Testing
+
+```bash
+make check
+```
+
+This runs backend linting, formatting validation, strict type checking, and tests in the project container. Native iOS build and test commands are documented alongside the iOS project.
 
 ## Product principles
 
@@ -30,4 +47,3 @@ Detailed setup and verification commands will be added with the first runnable v
 - Treat community verification, privacy, reporting, and moderation as product fundamentals.
 - Keep local workflows useful while making authoritative mutations explicit.
 - Measure real marketplace outcomes without fabricating metrics.
-
