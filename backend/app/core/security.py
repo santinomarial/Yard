@@ -58,3 +58,15 @@ async def current_user(
 
 
 CurrentUser = Annotated[User, Depends(current_user)]
+
+
+async def current_admin(user: CurrentUser) -> User:
+    if not user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"code": "admin_required", "message": "Moderator access is required."},
+        )
+    return user
+
+
+AdminUser = Annotated[User, Depends(current_admin)]

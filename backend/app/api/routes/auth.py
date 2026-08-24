@@ -36,6 +36,7 @@ def user_read(user: User) -> UserRead:
         harvard_email_verified=user.email_verified_at is not None,
         member_since=user.created_at,
         suspended=user.suspended_at is not None,
+        admin=user.is_admin,
     )
 
 
@@ -49,13 +50,15 @@ async def development_sign_in(
 ) -> AuthResponse:
     if settings.environment != "development":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
-    subject = "development-user"
+    subject = "development-admin" if payload.role == "admin" else "development-user"
     identity = await session.scalar(select(AppleIdentity).where(AppleIdentity.subject == subject))
     if identity:
         return auth_response(identity.user)
     user = User(
         display_name=payload.display_name,
         terms_accepted_at=datetime.now(UTC),
+        email_verified_at=datetime.now(UTC) if payload.role == "admin" else None,
+        is_admin=payload.role == "admin",
     )
     session.add(user)
     await session.flush()

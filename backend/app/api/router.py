@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.routes import (
+    admin,
     auth,
     bundles,
     buyer,
@@ -9,6 +10,7 @@ from app.api.routes import (
     listings,
     messaging,
     pickups,
+    reports,
     reservations,
 )
 
@@ -22,3 +24,5 @@ api_router.include_router(buyer.router, tags=["buyer"])
 api_router.include_router(bundles.router, prefix="/bundles", tags=["bundles"])
 api_router.include_router(messaging.router, tags=["messaging"])
 api_router.include_router(pickups.router, prefix="/pickups", tags=["pickups"])
+api_router.include_router(reports.router, prefix="/reports", tags=["reports"])
+api_router.include_router(admin.router, prefix="/admin", tags=["administration"])

@@ -5,11 +5,20 @@ from app.models.listing import Listing, ListingCondition, ListingStatus
 from app.models.marketplace_event import ListingEvent, ModerationResult
 from app.models.messaging import Block, Conversation, ConversationMember, Message, MessageType
 from app.models.pickup import ArrivalStatus, PickupSession, PickupStatus
+from app.models.report import (
+    AdminAction,
+    Report,
+    ReportReason,
+    ReportSeverity,
+    ReportStatus,
+    ReportTarget,
+)
 from app.models.reservation import Reservation, ReservationStatus, WaitlistEntry, WaitlistStatus
 from app.models.user import AppleIdentity, EmailVerification, User
 
 __all__ = [
     "AppleIdentity",
+    "AdminAction",
     "ArrivalStatus",
     "BuyingIntent",
     "Bundle",
@@ -32,6 +41,11 @@ __all__ = [
     "PickupStatus",
     "Reservation",
     "ReservationStatus",
+    "Report",
+    "ReportReason",
+    "ReportSeverity",
+    "ReportStatus",
+    "ReportTarget",
     "SavedListing",
     "WaitlistEntry",
     "WaitlistStatus",

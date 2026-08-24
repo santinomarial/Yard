@@ -1,11 +1,13 @@
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
 
 class DevelopmentSignInRequest(BaseModel):
     display_name: str = Field(default="Alex Rivers", min_length=1, max_length=80)
+    role: Literal["member", "admin"] = "member"
 
 
 class AppleSignInRequest(BaseModel):
@@ -19,6 +21,7 @@ class UserRead(BaseModel):
     harvard_email_verified: bool
     member_since: datetime
     suspended: bool
+    admin: bool
 
 
 class AuthResponse(BaseModel):
