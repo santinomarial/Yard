@@ -6,17 +6,20 @@ import Observation
 final class AppEnvironment {
     let marketplace: any MarketplaceRepository
     let selling: any SellingRepository
+    let buyer: any BuyerRepository
     let session: UserSession
     let apiClient: APIClient
 
     init(
         marketplace: any MarketplaceRepository,
         selling: (any SellingRepository)? = nil,
+        buyer: (any BuyerRepository)? = nil,
         session: UserSession? = nil,
         apiClient: APIClient? = nil
     ) {
         self.marketplace = marketplace
         self.selling = selling ?? PreviewSellingRepository()
+        self.buyer = buyer ?? PreviewBuyerRepository()
         let previewClient = apiClient ?? APIClient(baseURL: URL(string: "http://localhost:8000")!)
         self.apiClient = previewClient
         self.session = session ?? UserSession(
@@ -35,6 +38,7 @@ final class AppEnvironment {
         return AppEnvironment(
             marketplace: LiveMarketplaceRepository(client: client),
             selling: LiveSellingRepository(client: client),
+            buyer: LiveBuyerRepository(client: client),
             session: session,
             apiClient: client
         )

@@ -2,6 +2,10 @@ import SwiftUI
 
 struct ListingDetailView: View {
     let listing: Listing
+    @Environment(AppEnvironment.self) private var environment
+    @State private var isSaved = false
+    @State private var isUpdatingSavedState = false
+    @State private var actionMessage: String?
 
     var body: some View {
         ScrollView {
@@ -58,15 +62,50 @@ struct ListingDetailView: View {
         .background(YardTheme.Colors.background)
         .navigationTitle("Listing")
         .navigationBarTitleDisplayMode(.inline)
+        .task { await loadSavedState() }
+        .alert("Yard", isPresented: Binding(
+            get: { actionMessage != nil },
+            set: { if !$0 { actionMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(actionMessage ?? "")
+        }
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
-                Button("Save", systemImage: "bookmark") {}
+                Button(isSaved ? "Unsave" : "Save", systemImage: isSaved ? "bookmark.fill" : "bookmark") {
+                    Task { await toggleSaved() }
+                }
+                    .disabled(isUpdatingSavedState)
                     .accessibilityIdentifier("saveListingButton")
                 Menu("More", systemImage: "ellipsis") {
                     Button("Report listing", role: .destructive) {}
                 }
             }
         }
+    }
+
+    private func loadSavedState() async {
+        guard let token = environment.session.accessToken else { return }
+        if let saved = try? await environment.buyer.savedListings(accessToken: token) {
+            isSaved = saved.contains { $0.id == listing.id }
+        }
+    }
+
+    private func toggleSaved() async {
+        guard let token = environment.session.accessToken else { return }
+        let nextValue = !isSaved
+        isUpdatingSavedState = true
+        isSaved = nextValue
+        do {
+            try await environment.buyer.setSaved(
+                nextValue, listingID: listing.id, accessToken: token
+            )
+        } catch {
+            isSaved.toggle()
+            actionMessage = error.buyerMessage
+        }
+        isUpdatingSavedState = false
     }
 
     private func detailPill(_ text: String, symbol: String) -> some View {
@@ -82,4 +121,3 @@ struct ListingDetailView: View {
 #Preview {
     NavigationStack { ListingDetailView(listing: Listing.previewListings[0]) }
 }
-

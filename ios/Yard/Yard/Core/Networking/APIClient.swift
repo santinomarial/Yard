@@ -133,6 +133,58 @@ actor APIClient {
         }
     }
 
+    func requestVoid<Body: Encodable & Sendable>(
+        _ method: String,
+        path: String,
+        body: Body? = Optional<Body>.none,
+        accessToken: String? = nil
+    ) async throws {
+        guard let url = URL(string: path, relativeTo: baseURL)?.absoluteURL else {
+            throw APIError.invalidURL
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if let accessToken {
+            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        }
+        if let body {
+            request.httpBody = try JSONEncoder.yard.encode(body)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
+        let response: URLResponse
+        do {
+            (_, response) = try await session.data(for: request)
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            throw APIError.transport
+        }
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            throw APIError.rejected(
+                statusCode: httpResponse.statusCode,
+                code: "request_failed",
+                message: "Yard could not complete this request."
+            )
+        }
+    }
+
+    func requestVoid(
+        _ method: String,
+        path: String,
+        accessToken: String? = nil
+    ) async throws {
+        try await requestVoid(
+            method,
+            path: path,
+            body: Optional<EmptyBody>.none,
+            accessToken: accessToken
+        )
+    }
+
     private func decode<Response: Decodable & Sendable>(_ data: Data) throws -> Response {
         do {
             return try decoder.decode(Response.self, from: data)

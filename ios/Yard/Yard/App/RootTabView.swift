@@ -19,11 +19,7 @@ struct RootTabView: View {
             .tabItem { Label("Sell", systemImage: "plus.circle") }
 
             NavigationStack {
-                FeaturePlaceholder(
-                    title: "Saved",
-                    message: "Items you save will remain easy to find.",
-                    symbol: "bookmark"
-                )
+                SavedView()
             }
             .tabItem { Label("Saved", systemImage: "bookmark") }
 
