@@ -30,7 +30,7 @@ cp .env.example .env
 make dev
 ```
 
-The API is then available at `http://localhost:8000`, with interactive OpenAPI documentation at `http://localhost:8000/docs`. See [local development](docs/local-development.md) for service URLs and verification commands.
+The API is then available at `http://localhost:8000`, interactive OpenAPI documentation at `http://localhost:8000/docs`, and the moderation console at `http://localhost:3000`. See [local development](docs/local-development.md) for service URLs and verification commands.
 
 ## Testing
 
@@ -38,7 +38,7 @@ The API is then available at `http://localhost:8000`, with interactive OpenAPI d
 make check
 ```
 
-This runs backend linting, formatting validation, strict type checking, and tests in the project container. Native iOS build and test commands are documented alongside the iOS project.
+This runs backend and admin linting, formatting validation, strict type checking, tests, and the admin production build. Native iOS build and test commands are documented alongside the iOS project.
 
 ## Product principles
 

@@ -72,8 +72,17 @@ services:
       redis:
         condition: service_healthy
 
+  admin:
+    build:
+      context: ./admin
+      args:
+        NEXT_PUBLIC_YARD_API_URL: http://localhost:8000/api/v1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
 volumes:
   yard_postgres:
   yard_redis:
   yard_minio:
-

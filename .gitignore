@@ -25,6 +25,7 @@ build/
 node_modules/
 .next/
 coverage/
+*.tsbuildinfo
 
 # Xcode / Swift
 DerivedData/
@@ -39,4 +40,3 @@ Package.resolved
 
 # Local object storage and databases
 .data/
-

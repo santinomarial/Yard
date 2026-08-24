@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help dev dev-detached stop logs migrate seed test integration-test lint format typecheck check
+.PHONY: help dev dev-detached stop logs migrate seed test integration-test lint format typecheck admin-check check
 
 help:
 	@echo "Yard development commands"
@@ -8,7 +8,8 @@ help:
 	@echo "  make dev-detached  Start the local stack in the background"
 	@echo "  make stop          Stop local services"
 	@echo "  make test          Run backend tests"
-	@echo "  make check         Run backend lint, format, types, and tests"
+	@echo "  make check         Run backend and admin validation"
+	@echo "  make admin-check   Run admin lint, types, tests, and production build"
 
 dev:
 	docker compose up --build
@@ -43,9 +44,13 @@ format:
 typecheck:
 	docker compose run --rm --no-deps backend mypy app
 
+admin-check:
+	docker run --rm -v "$(CURDIR)/admin:/app" -w /app node:22-alpine sh -c "npm ci && npm run lint && npm run typecheck && npm test && npm run build"
+
 check:
 	docker compose build backend
 	docker compose run --rm --no-deps backend ruff check .
 	docker compose run --rm --no-deps backend ruff format --check .
 	docker compose run --rm --no-deps backend mypy app
 	docker compose run --rm --no-deps backend python -m pytest -q
+	$(MAKE) admin-check
