@@ -37,6 +37,18 @@ async def test_listing_filters_compose(client: AsyncClient) -> None:
     assert payload["items"][0]["title"] == "Walnut Desk"
 
 
+async def test_natural_search_extracts_free_and_price_constraints(client: AsyncClient) -> None:
+    free_response = await client.get("/api/v1/listings", params={"query": "free desk"})
+    priced_response = await client.get(
+        "/api/v1/listings", params={"query": "monitor under 90"}
+    )
+
+    assert [item["title"] for item in free_response.json()["items"]] == ["Walnut Desk"]
+    assert [item["title"] for item in priced_response.json()["items"]] == [
+        'Dell 27" Monitor'
+    ]
+
+
 async def test_listing_detail_uses_consistent_not_found_error(client: AsyncClient) -> None:
     response = await client.get("/api/v1/listings/00000000-0000-0000-0000-000000000000")
     assert response.status_code == 404

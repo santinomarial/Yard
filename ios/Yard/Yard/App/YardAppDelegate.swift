@@ -4,6 +4,7 @@ import UserNotifications
 extension Notification.Name {
     static let yardDeviceTokenUpdated = Notification.Name("yardDeviceTokenUpdated")
     static let yardDeepLinkReceived = Notification.Name("yardDeepLinkReceived")
+    static let yardSelectSearch = Notification.Name("yardSelectSearch")
 }
 
 @MainActor

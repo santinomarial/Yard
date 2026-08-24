@@ -38,6 +38,7 @@ from app.services.listings import (
 from app.services.moderation import DeterministicDevelopmentModeration
 from app.services.notifications import enqueue_notification
 from app.services.object_storage import ObjectStorage, get_object_storage
+from app.services.search_query import parse_natural_search
 
 router = APIRouter()
 
@@ -429,13 +430,16 @@ async def list_listings(
     offset: int = Query(default=0, ge=0),
     session: AsyncSession = Depends(get_session),
 ) -> ListingPage:
+    natural = parse_natural_search(query)
     filters = ListingQuery(
-        query=query,
+        query=natural.text,
         category=category,
         condition=condition,
         min_price_cents=min_price_cents,
-        max_price_cents=max_price_cents,
-        free_only=free_only,
+        max_price_cents=(
+            max_price_cents if max_price_cents is not None else natural.maximum_price_cents
+        ),
+        free_only=free_only or natural.free_only,
         pickup_zone=pickup_zone,
         sort=sort,
         limit=limit,
@@ -446,7 +450,7 @@ async def list_listings(
     metrics.observe(
         "search_latency_seconds",
         time.perf_counter() - search_started,
-        strategy="hybrid" if query else "browse",
+        strategy="hybrid" if filters.query else "browse",
     )
     if query:
         record_event(

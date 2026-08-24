@@ -56,12 +56,8 @@ struct HomeView: View {
     private var marketplace: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: YardTheme.Spacing.large) {
-                NavigationLink {
-                    FeaturePlaceholder(
-                        title: "Search",
-                        message: "Search is available from the Search tab.",
-                        symbol: "magnifyingglass"
-                    )
+                Button {
+                    NotificationCenter.default.post(name: .yardSelectSearch, object: nil)
                 } label: {
                     Label("What are you looking for?", systemImage: "magnifyingglass")
                         .font(.body)

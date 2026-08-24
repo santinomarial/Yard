@@ -62,6 +62,9 @@ struct RootTabView: View {
             guard let url = note.object as? URL else { return }
             route(url)
         }
+        .onReceive(NotificationCenter.default.publisher(for: .yardSelectSearch)) { _ in
+            selectedTab = .search
+        }
         .onOpenURL(perform: route)
         .task(id: environment.connectivity.isConnected) {
             guard environment.connectivity.isConnected,
