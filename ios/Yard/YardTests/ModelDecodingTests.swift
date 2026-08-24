@@ -66,4 +66,16 @@ struct ModelDecodingTests {
 
         #expect(listing.formattedPrice == "Free")
     }
+
+    @Test
+    func parsesCustomAndUniversalMarketplaceLinks() throws {
+        let id = UUID(uuidString: "11408445-3907-55C2-848E-8AD314EB1C7B")!
+
+        #expect(DeepLinkRoute(url: URL(string: "yard://listing/\(id)")!) == .listing(id))
+        #expect(
+            DeepLinkRoute(url: URL(string: "https://yard.market/reservations/\(id)")!)
+                == .reservation(id)
+        )
+        #expect(DeepLinkRoute(url: URL(string: "https://yard.market/unknown/\(id)")!) == nil)
+    }
 }
