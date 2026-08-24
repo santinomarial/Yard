@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help dev dev-detached stop logs migrate seed test lint format typecheck check
+.PHONY: help dev dev-detached stop logs migrate seed test integration-test lint format typecheck check
 
 help:
 	@echo "Yard development commands"
@@ -30,6 +30,9 @@ seed:
 
 test:
 	docker compose run --rm --no-deps backend python -m pytest -q
+
+integration-test:
+	docker compose run --rm -e PYTEST_ADDOPTS= backend python -m pytest -q -p no:cacheprovider -m integration
 
 lint:
 	docker compose run --rm --no-deps backend ruff check .
