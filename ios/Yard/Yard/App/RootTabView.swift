@@ -14,11 +14,7 @@ struct RootTabView: View {
             .tabItem { Label("Search", systemImage: "magnifyingglass") }
 
             NavigationStack {
-                FeaturePlaceholder(
-                    title: "Sell",
-                    message: "Create a listing from your photos.",
-                    symbol: "plus.circle"
-                )
+                SellView()
             }
             .tabItem { Label("Sell", systemImage: "plus.circle") }
 

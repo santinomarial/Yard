@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 @main
 struct YardApp: App {
@@ -9,6 +10,7 @@ struct YardApp: App {
             AuthenticationGate()
                 .environment(environment)
                 .tint(YardTheme.Colors.crimson)
+                .modelContainer(for: [ListingDraftRecord.self, DraftPhotoRecord.self])
         }
     }
 }

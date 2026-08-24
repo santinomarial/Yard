@@ -107,6 +107,32 @@ actor APIClient {
         )
     }
 
+    func upload(_ data: Data, to url: URL, headers: [String: String]) async throws {
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        for (name, value) in headers {
+            request.setValue(value, forHTTPHeaderField: name)
+        }
+        let response: URLResponse
+        do {
+            (_, response) = try await session.upload(for: request, from: data)
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            throw APIError.transport
+        }
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            throw APIError.rejected(
+                statusCode: httpResponse.statusCode,
+                code: "upload_failed",
+                message: "The photo upload did not finish. Try again."
+            )
+        }
+    }
+
     private func decode<Response: Decodable & Sendable>(_ data: Data) throws -> Response {
         do {
             return try decoder.decode(Response.self, from: data)
