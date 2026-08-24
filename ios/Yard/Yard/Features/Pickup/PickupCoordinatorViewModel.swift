@@ -18,12 +18,17 @@ final class PickupCoordinatorViewModel {
 
     func load(
         reservationID: UUID,
+        reservationExpiresAt: Date,
         using repository: any TransactionRepository,
         accessToken: String
     ) async {
         do {
-            pickup = try await repository.pickup(
+            let loaded = try await repository.pickup(
                 reservationID: reservationID, accessToken: accessToken
+            )
+            pickup = loaded
+            await PickupLiveActivityManager.shared.synchronize(
+                loaded, reservationExpiresAt: reservationExpiresAt
             )
         } catch {
             if error.transactionCode != "pickup_not_found" {
@@ -51,10 +56,11 @@ final class PickupCoordinatorViewModel {
 
     func accept(
         reservationID: UUID,
+        reservationExpiresAt: Date,
         using repository: any TransactionRepository,
         accessToken: String
     ) async {
-        await perform {
+        await perform(reservationExpiresAt: reservationExpiresAt) {
             try await repository.acceptPickup(
                 reservationID: reservationID, accessToken: accessToken
             )
@@ -64,10 +70,11 @@ final class PickupCoordinatorViewModel {
     func updatePresence(
         _ status: ArrivalStatus,
         reservationID: UUID,
+        reservationExpiresAt: Date,
         using repository: any TransactionRepository,
         accessToken: String
     ) async {
-        await perform {
+        await perform(reservationExpiresAt: reservationExpiresAt) {
             try await repository.updatePresence(
                 reservationID: reservationID,
                 update: PickupPresenceUpdate(
@@ -81,10 +88,11 @@ final class PickupCoordinatorViewModel {
 
     func complete(
         reservationID: UUID,
+        reservationExpiresAt: Date,
         using repository: any TransactionRepository,
         accessToken: String
     ) async {
-        await perform {
+        await perform(reservationExpiresAt: reservationExpiresAt) {
             try await repository.completePickup(
                 reservationID: reservationID, accessToken: accessToken
             )
@@ -93,20 +101,32 @@ final class PickupCoordinatorViewModel {
 
     func cancel(
         reservationID: UUID,
+        reservationExpiresAt: Date,
         using repository: any TransactionRepository,
         accessToken: String
     ) async {
-        await perform {
+        await perform(reservationExpiresAt: reservationExpiresAt) {
             try await repository.cancelPickup(
                 reservationID: reservationID, accessToken: accessToken
             )
         }
     }
 
-    private func perform(_ operation: () async throws -> PickupSession) async {
+    private func perform(
+        reservationExpiresAt: Date? = nil,
+        _ operation: () async throws -> PickupSession
+    ) async {
         isWorking = true
         errorMessage = nil
-        do { pickup = try await operation() }
+        do {
+            let updated = try await operation()
+            pickup = updated
+            if let reservationExpiresAt {
+                await PickupLiveActivityManager.shared.synchronize(
+                    updated, reservationExpiresAt: reservationExpiresAt
+                )
+            }
+        }
         catch { errorMessage = error.transactionMessage }
         isWorking = false
     }

@@ -22,6 +22,7 @@
 		467F636C326AB41DA10AAD45 /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFEB6E1A6425081073C93234 /* Notification.swift */; };
 		4AFF8E0E05BCBF01633A3D34 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE6A9C26911B57B12219FE24 /* AppEnvironment.swift */; };
 		4C5E5C7EF5581D68C2D1E630 /* ReportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 736217B4AA4DC478EF689B8D /* ReportSheet.swift */; };
+		4EEB3BE329039F51D3E756F1 /* YardPickupActivityWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A60B345BD8102D309E182A5 /* YardPickupActivityWidget.swift */; };
 		59A1DA182376BE2778E535E1 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13562034F0FE05F18EA25CC4 /* ChatViewModel.swift */; };
 		59C4FE5942E637DF19B5BBBF /* BuyerRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19E4DCA6977CC2387F164DE6 /* BuyerRepository.swift */; };
 		5AEA1CC98215E8BC192C524B /* YardAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2091DD65EF2CF1EF0BD714A2 /* YardAppDelegate.swift */; };
@@ -50,6 +51,7 @@
 		AD1FEF21202F9A07A52313AF /* ListingDraftRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85E10DD68007B76C4346DB82 /* ListingDraftRecord.swift */; };
 		AD7045C84AA326912E9B562D /* Account.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C57272A504799A67B2880A /* Account.swift */; };
 		B68A44C221AC191C381CA84D /* ChatViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8972CB58413FC823D2CA9616 /* ChatViewModelTests.swift */; };
+		B6BA0A43AC0DC9F29FE01FE7 /* PickupActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 449288ACFEA600A9242FFE89 /* PickupActivityAttributes.swift */; };
 		B709C252274D25CA03CB6E68 /* ListingDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4D3A84DCB17540F6D8760FC /* ListingDetailView.swift */; };
 		BB3C67F08230F39F65C03CB9 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6576AD0CF71E7D08244A9EC1 /* HomeView.swift */; };
 		C32F8436F020E85432799E74 /* IntentMatchesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F81738D6C58C0AFFD95CE4F /* IntentMatchesView.swift */; };
@@ -63,15 +65,25 @@
 		D6C2648AD75EFF18A07ABB1C /* SearchViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04C82ED56D70D6736E1EC79B /* SearchViewModelTests.swift */; };
 		DA04014258E810B42DB84E3B /* NotificationRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23309B0EA8AFA5CF1F054E0 /* NotificationRepository.swift */; };
 		DA7DCD847AF0B4A69D211DBF /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6657962A8DF2504667E11B51 /* ProfileViewModel.swift */; };
+		DBCC04FE25FC4C3559D05322 /* YardPickupActivity.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D49DEB1359C6830FEA405435 /* YardPickupActivity.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E4093B150CA1C28463386573 /* PickupCoordinatorViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C098FB0D8CE090D40E91488 /* PickupCoordinatorViewModelTests.swift */; };
+		E69861BB45056D509C8324CA /* PickupLiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8CA54412C3F2BD0541402FD /* PickupLiveActivityManager.swift */; };
 		E7D832374EA2114E8A4C0285 /* ListingCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 277F45766983DC0FE246B96E /* ListingCard.swift */; };
 		EA996B289FE4BD53FDB8A49D /* SavedViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF67AA604A6918B4B42EF1C /* SavedViewModelTests.swift */; };
 		F844013DDC43400B1808E651 /* Transaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE10239C5C8DE44C4DC74F56 /* Transaction.swift */; };
 		FAD56C5057648DEED830AFD5 /* PreviewAuthenticationRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4923873287A3BB33BBAD510 /* PreviewAuthenticationRepository.swift */; };
+		FE188B64779537C16E1F5303 /* PickupActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 449288ACFEA600A9242FFE89 /* PickupActivityAttributes.swift */; };
 		FEF87B21077D17D690C2688F /* SearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBB2EECC92F48450EC6C863 /* SearchViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		17E2503A8A990B7337A9340B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FE206404C1E6219CB778F7EE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DD5C6DF677B73CBF3B6D42DA;
+			remoteInfo = YardPickupActivity;
+		};
 		81931285E2DFA7C15487886D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = FE206404C1E6219CB778F7EE /* Project object */;
@@ -80,6 +92,20 @@
 			remoteInfo = Yard;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		36AFD9D8F068E163EEEEC207 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				DBCC04FE25FC4C3559D05322 /* YardPickupActivity.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		04C82ED56D70D6736E1EC79B /* SearchViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModelTests.swift; sourceTree = "<group>"; };
@@ -102,7 +128,9 @@
 		33C31B7B3151CDBD4C69B353 /* AuthenticationRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationRepository.swift; sourceTree = "<group>"; };
 		348832B9A81936AD5D2FE7F7 /* SellViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellViewModel.swift; sourceTree = "<group>"; };
 		4122E87B6BDD7502CB15020B /* ListingDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListingDraft.swift; sourceTree = "<group>"; };
+		449288ACFEA600A9242FFE89 /* PickupActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickupActivityAttributes.swift; sourceTree = "<group>"; };
 		45335C15542F2E7A3DE7DD22 /* SavedViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedViewModel.swift; sourceTree = "<group>"; };
+		4A60B345BD8102D309E182A5 /* YardPickupActivityWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YardPickupActivityWidget.swift; sourceTree = "<group>"; };
 		4C098FB0D8CE090D40E91488 /* PickupCoordinatorViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickupCoordinatorViewModelTests.swift; sourceTree = "<group>"; };
 		4C2C6EC5551CC36C36A57214 /* PreviewMarketplaceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewMarketplaceRepository.swift; sourceTree = "<group>"; };
 		4D0045C21F57D97E1C86E0E4 /* Yard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Yard.entitlements; sourceTree = "<group>"; };
@@ -127,13 +155,16 @@
 		9BBB2EECC92F48450EC6C863 /* SearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModel.swift; sourceTree = "<group>"; };
 		A4D3A84DCB17540F6D8760FC /* ListingDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListingDetailView.swift; sourceTree = "<group>"; };
 		BCA5FD88B87CACB1398CFA01 /* CameraCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureView.swift; sourceTree = "<group>"; };
+		C8CA54412C3F2BD0541402FD /* PickupLiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickupLiveActivityManager.swift; sourceTree = "<group>"; };
 		CA5E9140B5DAD0B598371068 /* NotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
+		CAFF771615BD3D25C4E51AD3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		CF64A379C8BD9F9027191E86 /* PickupCoordinatorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickupCoordinatorViewModel.swift; sourceTree = "<group>"; };
 		CFEB6E1A6425081073C93234 /* Notification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
 		D0C57272A504799A67B2880A /* Account.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Account.swift; sourceTree = "<group>"; };
 		D298FAC3576FE80D4200AED7 /* SellingRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellingRepository.swift; sourceTree = "<group>"; };
 		D2FAFB7A84702338C1F81BEE /* MarketplaceLocalStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceLocalStore.swift; sourceTree = "<group>"; };
 		D4923873287A3BB33BBAD510 /* PreviewAuthenticationRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewAuthenticationRepository.swift; sourceTree = "<group>"; };
+		D49DEB1359C6830FEA405435 /* YardPickupActivity.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = YardPickupActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		DBF67AA604A6918B4B42EF1C /* SavedViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedViewModelTests.swift; sourceTree = "<group>"; };
 		E23309B0EA8AFA5CF1F054E0 /* NotificationRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationRepository.swift; sourceTree = "<group>"; };
 		E255D1A15A11B957ED41403A /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
@@ -182,6 +213,15 @@
 				4D0045C21F57D97E1C86E0E4 /* Yard.entitlements */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		0C15711780C1DBFFAE1EBC83 /* LiveActivity */ = {
+			isa = PBXGroup;
+			children = (
+				449288ACFEA600A9242FFE89 /* PickupActivityAttributes.swift */,
+				C8CA54412C3F2BD0541402FD /* PickupLiveActivityManager.swift */,
+			);
+			path = LiveActivity;
 			sourceTree = "<group>";
 		};
 		100C0C781F469EB565978096 /* Repositories */ = {
@@ -235,9 +275,19 @@
 			isa = PBXGroup;
 			children = (
 				7FA0E7175D2E535A6A93858A /* Yard */,
+				4EEFD872FC1C428A262C5BE4 /* YardPickupActivity */,
 				CC66F82879199C751674B6FD /* YardTests */,
 				7447305D8627CE6CC9E106B6 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		4EEFD872FC1C428A262C5BE4 /* YardPickupActivity */ = {
+			isa = PBXGroup;
+			children = (
+				CAFF771615BD3D25C4E51AD3 /* Info.plist */,
+				4A60B345BD8102D309E182A5 /* YardPickupActivityWidget.swift */,
+			);
+			path = YardPickupActivity;
 			sourceTree = "<group>";
 		};
 		6C22543444DA3C3D9187A6DD /* Sell */ = {
@@ -255,6 +305,7 @@
 			children = (
 				063B2A23369AF433868FD991 /* Analysis */,
 				14E9A8A05CEE7B430277FD3D /* Design */,
+				0C15711780C1DBFFAE1EBC83 /* LiveActivity */,
 				2214579B1F3DA7FF1D74E979 /* Models */,
 				7ED5D18026FF158CC716EA5B /* Networking */,
 				CDF4E9CB8BDE08AE11849D19 /* Persistence */,
@@ -268,6 +319,7 @@
 			isa = PBXGroup;
 			children = (
 				ED859673BB2610C78C35B7F7 /* Yard.app */,
+				D49DEB1359C6830FEA405435 /* YardPickupActivity.appex */,
 				597CE30A5C4DC691FE0C59FE /* YardTests.xctest */,
 			);
 			name = Products;
@@ -442,16 +494,35 @@
 			productReference = 597CE30A5C4DC691FE0C59FE /* YardTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		DD5C6DF677B73CBF3B6D42DA /* YardPickupActivity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2E34EF99A9B685EAD00DAB7D /* Build configuration list for PBXNativeTarget "YardPickupActivity" */;
+			buildPhases = (
+				1A58189A071FC0D537DE0B4A /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = YardPickupActivity;
+			packageProductDependencies = (
+			);
+			productName = YardPickupActivity;
+			productReference = D49DEB1359C6830FEA405435 /* YardPickupActivity.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		FF0939082242D41D5BFBCB2F /* Yard */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = DF392A60E8E7EA9F6EA4B514 /* Build configuration list for PBXNativeTarget "Yard" */;
 			buildPhases = (
 				488A4AA0E40076858C9C5F98 /* Sources */,
 				6FABF70D7C2E49BCC2E5654D /* Resources */,
+				36AFD9D8F068E163EEEEC207 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				7A2F98C04DA6C2839FE11F45 /* PBXTargetDependency */,
 			);
 			name = Yard;
 			packageProductDependencies = (
@@ -470,6 +541,9 @@
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					1EDB4C47924C598465901B2E = {
+						ProvisioningStyle = Automatic;
+					};
+					DD5C6DF677B73CBF3B6D42DA = {
 						ProvisioningStyle = Automatic;
 					};
 					FF0939082242D41D5BFBCB2F = {
@@ -492,6 +566,7 @@
 			projectRoot = "";
 			targets = (
 				FF0939082242D41D5BFBCB2F /* Yard */,
+				DD5C6DF677B73CBF3B6D42DA /* YardPickupActivity */,
 				1EDB4C47924C598465901B2E /* YardTests */,
 			);
 		};
@@ -509,6 +584,15 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		1A58189A071FC0D537DE0B4A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FE188B64779537C16E1F5303 /* PickupActivityAttributes.swift in Sources */,
+				4EEB3BE329039F51D3E756F1 /* YardPickupActivityWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		488A4AA0E40076858C9C5F98 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -542,8 +626,10 @@
 				467F636C326AB41DA10AAD45 /* Notification.swift in Sources */,
 				DA04014258E810B42DB84E3B /* NotificationRepository.swift in Sources */,
 				320D908F8132C5D8CE0F35B8 /* NotificationsView.swift in Sources */,
+				B6BA0A43AC0DC9F29FE01FE7 /* PickupActivityAttributes.swift in Sources */,
 				A2EE27FC8556D7E026A39804 /* PickupCoordinatorView.swift in Sources */,
 				8CAAD48BA297B3C9AA4F30A7 /* PickupCoordinatorViewModel.swift in Sources */,
+				E69861BB45056D509C8324CA /* PickupLiveActivityManager.swift in Sources */,
 				FAD56C5057648DEED830AFD5 /* PreviewAuthenticationRepository.swift in Sources */,
 				22457D0A33BEB2BB43DB3800 /* PreviewMarketplaceRepository.swift in Sources */,
 				1F7F54766B8A34CDDFB149A4 /* ProfileView.swift in Sources */,
@@ -587,6 +673,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		7A2F98C04DA6C2839FE11F45 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DD5C6DF677B73CBF3B6D42DA /* YardPickupActivity */;
+			targetProxy = 17E2503A8A990B7337A9340B /* PBXContainerItemProxy */;
+		};
 		B1B32CB91891B196F0EF15FF /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = FF0939082242D41D5BFBCB2F /* Yard */;
@@ -614,6 +705,26 @@
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		455DADC99C82D975E3D74002 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = YardPickupActivity/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.santinomarial.yard.pickup-activity";
+				PRODUCT_NAME = YardPickupActivity;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -650,6 +761,26 @@
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Yard.app/Yard";
 			};
 			name = Debug;
+		};
+		95A8C226534E41B6037F4784 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = YardPickupActivity/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.santinomarial.yard.pickup-activity";
+				PRODUCT_NAME = YardPickupActivity;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
 		};
 		DC3E7D1CBE49391CFDA06B2A /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -801,6 +932,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		2E34EF99A9B685EAD00DAB7D /* Build configuration list for PBXNativeTarget "YardPickupActivity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				455DADC99C82D975E3D74002 /* Debug */,
+				95A8C226534E41B6037F4784 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		5975E9C99DCC5B3A7C37D6CA /* Build configuration list for PBXProject "Yard" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

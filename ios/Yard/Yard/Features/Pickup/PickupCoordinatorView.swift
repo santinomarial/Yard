@@ -127,9 +127,14 @@ struct PickupCoordinatorView: View {
 
     private func token() -> String? { environment.session.accessToken }
     private func load() async {
+        if reservation.status == .expired {
+            await PickupLiveActivityManager.shared.endExpired(reservationID: reservation.id)
+            return
+        }
         guard let token = token() else { return }
         await model.load(
-            reservationID: reservation.id, using: environment.transactions, accessToken: token
+            reservationID: reservation.id, reservationExpiresAt: reservation.expiresAt,
+            using: environment.transactions, accessToken: token
         )
     }
     private func propose() async {
@@ -141,26 +146,30 @@ struct PickupCoordinatorView: View {
     private func accept() async {
         guard let token = token() else { return }
         await model.accept(
-            reservationID: reservation.id, using: environment.transactions, accessToken: token
+            reservationID: reservation.id, reservationExpiresAt: reservation.expiresAt,
+            using: environment.transactions, accessToken: token
         )
     }
     private func updatePresence(_ status: ArrivalStatus) async {
         guard let token = token() else { return }
         await model.updatePresence(
             status, reservationID: reservation.id,
+            reservationExpiresAt: reservation.expiresAt,
             using: environment.transactions, accessToken: token
         )
     }
     private func complete() async {
         guard let token = token() else { return }
         await model.complete(
-            reservationID: reservation.id, using: environment.transactions, accessToken: token
+            reservationID: reservation.id, reservationExpiresAt: reservation.expiresAt,
+            using: environment.transactions, accessToken: token
         )
     }
     private func cancel() async {
         guard let token = token() else { return }
         await model.cancel(
-            reservationID: reservation.id, using: environment.transactions, accessToken: token
+            reservationID: reservation.id, reservationExpiresAt: reservation.expiresAt,
+            using: environment.transactions, accessToken: token
         )
     }
 }

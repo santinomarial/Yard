@@ -9,7 +9,8 @@ struct PickupCoordinatorViewModelTests {
         let model = PickupCoordinatorViewModel()
 
         await model.load(
-            reservationID: UUID(), using: PickupRepositoryStub(), accessToken: "token"
+            reservationID: UUID(), reservationExpiresAt: .now.addingTimeInterval(1_800),
+            using: PickupRepositoryStub(), accessToken: "token"
         )
 
         #expect(model.pickup == nil)

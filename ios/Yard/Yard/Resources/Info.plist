@@ -42,6 +42,8 @@
 	<string>Yard uses your location only to estimate travel time to a selected public pickup area.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Yard lets you select item photos for listings.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

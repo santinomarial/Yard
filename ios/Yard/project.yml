@@ -35,6 +35,7 @@ targets:
           UIApplicationSupportsMultipleScenes: false
         UIBackgroundModes:
           - remote-notification
+        NSSupportsLiveActivities: true
         CFBundleURLTypes:
           - CFBundleURLName: com.santinomarial.yard
             CFBundleURLSchemes:
@@ -60,6 +61,29 @@ targets:
       testTargets:
         - YardTests
       gatherCoverageData: true
+    dependencies:
+      - target: YardPickupActivity
+
+  YardPickupActivity:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: YardPickupActivity
+      - path: Yard/Core/LiveActivity/PickupActivityAttributes.swift
+    info:
+      path: YardPickupActivity/Info.plist
+      properties:
+        CFBundleDisplayName: Yard Pickup
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.santinomarial.yard.pickup-activity
+        PRODUCT_NAME: YardPickupActivity
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
+        SKIP_INSTALL: true
+        APPLICATION_EXTENSION_API_ONLY: true
 
   YardTests:
     type: bundle.unit-test
