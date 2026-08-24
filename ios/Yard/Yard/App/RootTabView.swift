@@ -9,11 +9,7 @@ struct RootTabView: View {
             .tabItem { Label("Home", systemImage: "house") }
 
             NavigationStack {
-                FeaturePlaceholder(
-                    title: "Search",
-                    message: "Search across active campus listings.",
-                    symbol: "magnifyingglass"
-                )
+                SearchView()
             }
             .tabItem { Label("Search", systemImage: "magnifyingglass") }
 

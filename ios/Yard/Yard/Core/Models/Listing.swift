@@ -74,5 +74,12 @@ enum ListingSort: String, CaseIterable, Sendable {
     case newest
     case priceAscending = "price_asc"
     case priceDescending = "price_desc"
-}
 
+    var displayName: String {
+        switch self {
+        case .newest: "Newest"
+        case .priceAscending: "Price: low to high"
+        case .priceDescending: "Price: high to low"
+        }
+    }
+}

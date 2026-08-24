@@ -44,6 +44,8 @@ actor APIClient {
         let response: URLResponse
         do {
             (data, response) = try await session.data(from: url)
+        } catch is CancellationError {
+            throw CancellationError()
         } catch {
             throw APIError.transport
         }
@@ -82,4 +84,3 @@ extension JSONDecoder {
         return decoder
     }
 }
-
