@@ -6,6 +6,8 @@ async def test_health(client: AsyncClient) -> None:
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
     assert response.headers["X-Request-ID"]
+    assert response.headers["X-Content-Type-Options"] == "nosniff"
+    assert response.headers["X-Frame-Options"] == "DENY"
 
 
 async def test_categories_are_backend_driven(client: AsyncClient) -> None:
@@ -48,3 +50,14 @@ async def test_invalid_query_has_safe_error_envelope(client: AsyncClient) -> Non
     response = await client.get("/api/v1/listings", params={"limit": 500})
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "invalid_request"
+
+
+async def test_rejects_oversized_request_before_routing(client: AsyncClient) -> None:
+    response = await client.post(
+        "/api/v1/auth/development",
+        content=b"x" * 1_048_577,
+        headers={"Content-Type": "application/json"},
+    )
+
+    assert response.status_code == 413
+    assert response.json()["error"]["code"] == "request_too_large"

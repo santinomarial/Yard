@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.pool import StaticPool
 
 from app.core.database import Base, get_session
-from app.main import app
+from app.main import app, rate_limiter
 from app.models import Category, Listing, ListingCondition, ListingStatus
 
 
@@ -84,6 +84,9 @@ async def client(seeded_session: AsyncSession) -> AsyncIterator[AsyncClient]:
         yield seeded_session
 
     app.dependency_overrides[get_session] = override_session
+    previous_rate_limit = rate_limiter.settings.rate_limit_enabled
+    rate_limiter.settings.rate_limit_enabled = False
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as test_client:
         yield test_client
+    rate_limiter.settings.rate_limit_enabled = previous_rate_limit
     app.dependency_overrides.clear()

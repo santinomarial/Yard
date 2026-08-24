@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -35,6 +35,25 @@ class Settings(BaseSettings):
     apns_private_key: str | None = None
     apns_bundle_id: str = "com.santinomarial.yard"
     apns_sandbox: bool = True
+    rate_limit_enabled: bool = True
+    max_request_bytes: int = 1_048_576
+    trusted_proxy_ips: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_production_secrets(self) -> "Settings":
+        if self.environment != "production":
+            return self
+        insecure = (
+            len(self.access_token_secret) < 32
+            or "development-only" in self.access_token_secret
+            or len(self.verification_pepper) < 32
+            or "development-only" in self.verification_pepper
+            or "development-only" in self.s3_secret_key
+            or "*" in self.cors_origins
+        )
+        if insecure:
+            raise ValueError("Production secrets and CORS origins must be explicitly configured")
+        return self
 
 
 @lru_cache
