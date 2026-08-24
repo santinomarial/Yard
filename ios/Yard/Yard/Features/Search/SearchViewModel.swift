@@ -18,6 +18,10 @@ final class SearchViewModel {
     private(set) var state = State.idle
     private(set) var categories: [YardCategory] = []
 
+    init(category: String? = nil) {
+        filters.category = category
+    }
+
     var activeFilterCount: Int {
         var count = 0
         if filters.category != nil { count += 1 }

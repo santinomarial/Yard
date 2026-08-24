@@ -63,6 +63,7 @@
 		CEC2DB2B15037584EEF4563E /* ModelDecodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99AC424DD294154BBB3635F5 /* ModelDecodingTests.swift */; };
 		D02422DFA325F92FB8EDB67C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 892AC6303BFA764D09B87D84 /* PrivacyInfo.xcprivacy */; };
 		D21A9AC38FA5DCE1DC66F1A4 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 212CAC6E2D0F0E1ED408D3F4 /* APIClient.swift */; };
+		D309549B01C13E3EFADE42CD /* YardJourneyUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FD89857A901C6CD4CC237B9 /* YardJourneyUITests.swift */; };
 		D6C2648AD75EFF18A07ABB1C /* SearchViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04C82ED56D70D6736E1EC79B /* SearchViewModelTests.swift */; };
 		DA04014258E810B42DB84E3B /* NotificationRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23309B0EA8AFA5CF1F054E0 /* NotificationRepository.swift */; };
 		DA7DCD847AF0B4A69D211DBF /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6657962A8DF2504667E11B51 /* ProfileViewModel.swift */; };
@@ -71,6 +72,7 @@
 		E69861BB45056D509C8324CA /* PickupLiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8CA54412C3F2BD0541402FD /* PickupLiveActivityManager.swift */; };
 		E7D832374EA2114E8A4C0285 /* ListingCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 277F45766983DC0FE246B96E /* ListingCard.swift */; };
 		EA996B289FE4BD53FDB8A49D /* SavedViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF67AA604A6918B4B42EF1C /* SavedViewModelTests.swift */; };
+		EF02A9DD30DA4D6E7374425D /* SellerListingManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7CC4961646232FA822C0E9E /* SellerListingManagementView.swift */; };
 		F844013DDC43400B1808E651 /* Transaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE10239C5C8DE44C4DC74F56 /* Transaction.swift */; };
 		FAD56C5057648DEED830AFD5 /* PreviewAuthenticationRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4923873287A3BB33BBAD510 /* PreviewAuthenticationRepository.swift */; };
 		FE188B64779537C16E1F5303 /* PickupActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 449288ACFEA600A9242FFE89 /* PickupActivityAttributes.swift */; };
@@ -84,6 +86,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = DD5C6DF677B73CBF3B6D42DA;
 			remoteInfo = YardPickupActivity;
+		};
+		7938FF6414BD08F91C7DB069 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FE206404C1E6219CB778F7EE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FF0939082242D41D5BFBCB2F;
+			remoteInfo = Yard;
 		};
 		81931285E2DFA7C15487886D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -138,6 +147,7 @@
 		51D22E85847DB5D28D5A811D /* ConnectivityMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectivityMonitor.swift; sourceTree = "<group>"; };
 		56E40A440ADCAB402268B4E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		597CE30A5C4DC691FE0C59FE /* YardTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = YardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		616CE87ED9076BAEDFC7DBD1 /* YardUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = YardUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		631318A226418AFB6133BE64 /* SavedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedView.swift; sourceTree = "<group>"; };
 		6576AD0CF71E7D08244A9EC1 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		6657962A8DF2504667E11B51 /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
@@ -151,12 +161,14 @@
 		85E10DD68007B76C4346DB82 /* ListingDraftRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListingDraftRecord.swift; sourceTree = "<group>"; };
 		892AC6303BFA764D09B87D84 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		8972CB58413FC823D2CA9616 /* ChatViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModelTests.swift; sourceTree = "<group>"; };
+		8FD89857A901C6CD4CC237B9 /* YardJourneyUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YardJourneyUITests.swift; sourceTree = "<group>"; };
 		9253B95B687729CDDEE5C29A /* SafetyRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyRepository.swift; sourceTree = "<group>"; };
 		96149D7B4B74C8A28FF7185F /* MarketplaceCacheRecords.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceCacheRecords.swift; sourceTree = "<group>"; };
 		99AC424DD294154BBB3635F5 /* ModelDecodingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelDecodingTests.swift; sourceTree = "<group>"; };
 		9BBB2EECC92F48450EC6C863 /* SearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModel.swift; sourceTree = "<group>"; };
 		A4D3A84DCB17540F6D8760FC /* ListingDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListingDetailView.swift; sourceTree = "<group>"; };
 		AFB7466DE6502E12F080B985 /* Yard-Release.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Yard-Release.entitlements"; sourceTree = "<group>"; };
+		B7CC4961646232FA822C0E9E /* SellerListingManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SellerListingManagementView.swift; sourceTree = "<group>"; };
 		BCA5FD88B87CACB1398CFA01 /* CameraCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureView.swift; sourceTree = "<group>"; };
 		C8CA54412C3F2BD0541402FD /* PickupLiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickupLiveActivityManager.swift; sourceTree = "<group>"; };
 		CA5E9140B5DAD0B598371068 /* NotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
@@ -282,6 +294,7 @@
 				7FA0E7175D2E535A6A93858A /* Yard */,
 				4EEFD872FC1C428A262C5BE4 /* YardPickupActivity */,
 				CC66F82879199C751674B6FD /* YardTests */,
+				5A5591FBD643B9D0AC58B233 /* YardUITests */,
 				7447305D8627CE6CC9E106B6 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -293,6 +306,14 @@
 				4A60B345BD8102D309E182A5 /* YardPickupActivityWidget.swift */,
 			);
 			path = YardPickupActivity;
+			sourceTree = "<group>";
+		};
+		5A5591FBD643B9D0AC58B233 /* YardUITests */ = {
+			isa = PBXGroup;
+			children = (
+				8FD89857A901C6CD4CC237B9 /* YardJourneyUITests.swift */,
+			);
+			path = YardUITests;
 			sourceTree = "<group>";
 		};
 		6C22543444DA3C3D9187A6DD /* Sell */ = {
@@ -326,6 +347,7 @@
 				ED859673BB2610C78C35B7F7 /* Yard.app */,
 				D49DEB1359C6830FEA405435 /* YardPickupActivity.appex */,
 				597CE30A5C4DC691FE0C59FE /* YardTests.xctest */,
+				616CE87ED9076BAEDFC7DBD1 /* YardUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -385,6 +407,7 @@
 				CA5E9140B5DAD0B598371068 /* NotificationsView.swift */,
 				E255D1A15A11B957ED41403A /* ProfileView.swift */,
 				6657962A8DF2504667E11B51 /* ProfileViewModel.swift */,
+				B7CC4961646232FA822C0E9E /* SellerListingManagementView.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -481,6 +504,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		114D1AAB2AA25F7DFE51146A /* YardUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7E824E01ABEDDB40A6C7853D /* Build configuration list for PBXNativeTarget "YardUITests" */;
+			buildPhases = (
+				062AA8914CB082C47890C811 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				04AF993F2A5D4264E2B42A99 /* PBXTargetDependency */,
+			);
+			name = YardUITests;
+			packageProductDependencies = (
+			);
+			productName = YardUITests;
+			productReference = 616CE87ED9076BAEDFC7DBD1 /* YardUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		1EDB4C47924C598465901B2E /* YardTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 77966E86928B6AFC72ADF7FB /* Build configuration list for PBXNativeTarget "YardTests" */;
@@ -545,6 +586,10 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
+					114D1AAB2AA25F7DFE51146A = {
+						ProvisioningStyle = Automatic;
+						TestTargetID = FF0939082242D41D5BFBCB2F;
+					};
 					1EDB4C47924C598465901B2E = {
 						ProvisioningStyle = Automatic;
 					};
@@ -573,6 +618,7 @@
 				FF0939082242D41D5BFBCB2F /* Yard */,
 				DD5C6DF677B73CBF3B6D42DA /* YardPickupActivity */,
 				1EDB4C47924C598465901B2E /* YardTests */,
+				114D1AAB2AA25F7DFE51146A /* YardUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -590,6 +636,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		062AA8914CB082C47890C811 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D309549B01C13E3EFADE42CD /* YardJourneyUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1A58189A071FC0D537DE0B4A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -651,6 +705,7 @@
 				FEF87B21077D17D690C2688F /* SearchViewModel.swift in Sources */,
 				AA8F06F4D23AA0F0D7BE20A8 /* SellView.swift in Sources */,
 				243FC8C35C2E773D5A47534B /* SellViewModel.swift in Sources */,
+				EF02A9DD30DA4D6E7374425D /* SellerListingManagementView.swift in Sources */,
 				C754F822BD9D9A4D5E15FB4C /* SellingRepository.swift in Sources */,
 				F844013DDC43400B1808E651 /* Transaction.swift in Sources */,
 				93DE10A09A91110202716EC0 /* TransactionRepository.swift in Sources */,
@@ -679,6 +734,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		04AF993F2A5D4264E2B42A99 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FF0939082242D41D5BFBCB2F /* Yard */;
+			targetProxy = 7938FF6414BD08F91C7DB069 /* PBXContainerItemProxy */;
+		};
 		7A2F98C04DA6C2839FE11F45 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = DD5C6DF677B73CBF3B6D42DA /* YardPickupActivity */;
@@ -692,6 +752,23 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		07B493E6D98B6AE6F2CF66BC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.santinomarial.yard.ui-tests";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Yard;
+			};
+			name = Release;
+		};
 		2EBCE02E6594F54B68FDA102 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -937,6 +1014,23 @@
 			};
 			name = Release;
 		};
+		F70E34ED2AE81F7329998483 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.santinomarial.yard.ui-tests";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Yard;
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -963,6 +1057,15 @@
 			buildConfigurations = (
 				5B5C706C894E71CA53E1C469 /* Debug */,
 				57F7767F8ACCF49AC6C88AFB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		7E824E01ABEDDB40A6C7853D /* Build configuration list for PBXNativeTarget "YardUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F70E34ED2AE81F7329998483 /* Debug */,
+				07B493E6D98B6AE6F2CF66BC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

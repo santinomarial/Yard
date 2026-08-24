@@ -100,13 +100,21 @@ struct HomeView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: YardTheme.Spacing.small) {
                     ForEach(model.categories) { category in
-                        Label(category.name, systemImage: category.symbol)
-                            .font(.subheadline.weight(.semibold))
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 10)
-                            .background(YardTheme.Colors.surface)
-                            .clipShape(Capsule())
-                            .accessibilityIdentifier("category_\(category.slug)")
+                        Button {
+                            NotificationCenter.default.post(
+                                name: .yardSelectSearch,
+                                object: category.slug
+                            )
+                        } label: {
+                            Label(category.name, systemImage: category.symbol)
+                                .font(.subheadline.weight(.semibold))
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 10)
+                                .background(YardTheme.Colors.surface)
+                                .clipShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("category_\(category.slug)")
                     }
                 }
             }

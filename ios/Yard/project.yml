@@ -68,6 +68,7 @@ targets:
     scheme:
       testTargets:
         - YardTests
+        - YardUITests
       gatherCoverageData: true
     dependencies:
       - target: YardPickupActivity
@@ -104,3 +105,16 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.santinomarial.yard.tests
         GENERATE_INFOPLIST_FILE: true
+
+  YardUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: YardUITests
+    dependencies:
+      - target: Yard
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.santinomarial.yard.ui-tests
+        GENERATE_INFOPLIST_FILE: true
+        TEST_TARGET_NAME: Yard

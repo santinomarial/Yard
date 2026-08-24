@@ -5,6 +5,7 @@ struct RootTabView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.modelContext) private var modelContext
     @State private var selectedTab = YardTab.home
+    @State private var selectedSearchCategory: String?
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -15,7 +16,8 @@ struct RootTabView: View {
             .tag(YardTab.home)
 
             NavigationStack {
-                SearchView()
+                SearchView(category: selectedSearchCategory)
+                    .id(selectedSearchCategory)
             }
             .tabItem { Label("Search", systemImage: "magnifyingglass") }
             .tag(YardTab.search)
@@ -51,6 +53,7 @@ struct RootTabView: View {
             }
         }
         .task {
+            guard !ProcessInfo.processInfo.arguments.contains("-ui-testing") else { return }
             await PushRegistration.requestAuthorization()
             if let token = PushRegistration.storedToken { await registerDevice(token) }
         }
@@ -62,7 +65,8 @@ struct RootTabView: View {
             guard let url = note.object as? URL else { return }
             route(url)
         }
-        .onReceive(NotificationCenter.default.publisher(for: .yardSelectSearch)) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .yardSelectSearch)) { note in
+            selectedSearchCategory = note.object as? String
             selectedTab = .search
         }
         .onOpenURL(perform: route)

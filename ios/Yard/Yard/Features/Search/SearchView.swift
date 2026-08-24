@@ -2,13 +2,17 @@ import SwiftUI
 
 struct SearchView: View {
     @Environment(AppEnvironment.self) private var environment
-    @State private var model = SearchViewModel()
+    @State private var model: SearchViewModel
     @State private var showsFilters = false
 
     private let columns = [
         GridItem(.flexible(), spacing: YardTheme.Spacing.medium),
         GridItem(.flexible(), spacing: YardTheme.Spacing.medium),
     ]
+
+    init(category: String? = nil) {
+        _model = State(initialValue: SearchViewModel(category: category))
+    }
 
     var body: some View {
         @Bindable var model = model

@@ -51,6 +51,17 @@
                ReferencedContainer = "container:Yard.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "114D1AAB2AA25F7DFE51146A"
+               BuildableName = "YardUITests.xctest"
+               BlueprintName = "YardUITests"
+               ReferencedContainer = "container:Yard.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <CommandLineArguments>
       </CommandLineArguments>

@@ -52,7 +52,7 @@ actor LiveBuyerRepository: BuyerRepository {
 }
 
 actor PreviewBuyerRepository: BuyerRepository {
-    private var saved = Listing.previewListings
+    private var saved: [Listing] = []
 
     func savedListings(accessToken: String) async throws -> [Listing] { saved }
 
