@@ -9,6 +9,7 @@ final class AppEnvironment {
     let buyer: any BuyerRepository
     let transactions: any TransactionRepository
     let safety: any SafetyRepository
+    let notifications: any NotificationRepository
     let session: UserSession
     let apiClient: APIClient
 
@@ -18,6 +19,7 @@ final class AppEnvironment {
         buyer: (any BuyerRepository)? = nil,
         transactions: (any TransactionRepository)? = nil,
         safety: (any SafetyRepository)? = nil,
+        notifications: (any NotificationRepository)? = nil,
         session: UserSession? = nil,
         apiClient: APIClient? = nil
     ) {
@@ -26,6 +28,7 @@ final class AppEnvironment {
         self.buyer = buyer ?? PreviewBuyerRepository()
         self.transactions = transactions ?? PreviewTransactionRepository()
         self.safety = safety ?? PreviewSafetyRepository()
+        self.notifications = notifications ?? PreviewNotificationRepository()
         let previewClient = apiClient ?? APIClient(baseURL: URL(string: "http://localhost:8000")!)
         self.apiClient = previewClient
         self.session = session ?? UserSession(
@@ -47,6 +50,7 @@ final class AppEnvironment {
             buyer: LiveBuyerRepository(client: client),
             transactions: LiveTransactionRepository(client: client),
             safety: LiveSafetyRepository(client: client),
+            notifications: LiveNotificationRepository(client: client),
             session: session,
             apiClient: client
         )

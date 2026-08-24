@@ -33,6 +33,12 @@ targets:
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
+        UIBackgroundModes:
+          - remote-notification
+        CFBundleURLTypes:
+          - CFBundleURLName: com.santinomarial.yard
+            CFBundleURLSchemes:
+              - yard
         NSCameraUsageDescription: Yard uses the camera to photograph items you choose to list.
         NSPhotoLibraryUsageDescription: Yard lets you select item photos for listings.
         NSLocationWhenInUseUsageDescription: Yard uses your location only to estimate travel time to a selected public pickup area.
@@ -49,6 +55,7 @@ targets:
         CURRENT_PROJECT_VERSION: 1
         TARGETED_DEVICE_FAMILY: "1"
         SUPPORTS_MACCATALYST: false
+        CODE_SIGN_ENTITLEMENTS: Yard/Resources/Yard.entitlements
     scheme:
       testTargets:
         - YardTests
@@ -65,4 +72,3 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.santinomarial.yard.tests
         GENERATE_INFOPLIST_FILE: true
-

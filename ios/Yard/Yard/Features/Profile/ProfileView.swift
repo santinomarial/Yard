@@ -83,6 +83,9 @@ struct ProfileView: View {
             }
 
             Section("Safety and support") {
+                NavigationLink("Notifications") {
+                    NotificationsView()
+                }
                 NavigationLink("Prohibited items policy") {
                     PolicyView.prohibitedItems
                 }

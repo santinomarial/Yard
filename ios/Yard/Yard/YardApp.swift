@@ -3,6 +3,7 @@ import SwiftData
 
 @main
 struct YardApp: App {
+    @UIApplicationDelegateAdaptor(YardAppDelegate.self) private var appDelegate
     @State private var environment = AppEnvironment.live()
 
     var body: some Scene {
