@@ -25,6 +25,16 @@ def create_access_token(user_id: uuid.UUID) -> str:
     )
 
 
+def decode_access_token(token: str) -> uuid.UUID:
+    claims = jwt.decode(
+        token,
+        settings.access_token_secret,
+        algorithms=["HS256"],
+        issuer="yard",
+    )
+    return uuid.UUID(claims["sub"])
+
+
 async def current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
     session: Annotated[AsyncSession, Depends(get_session)],
@@ -35,13 +45,7 @@ async def current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        claims = jwt.decode(
-            token,
-            settings.access_token_secret,
-            algorithms=["HS256"],
-            issuer="yard",
-        )
-        user_id = uuid.UUID(claims["sub"])
+        user_id = decode_access_token(token)
     except (InvalidTokenError, KeyError, ValueError):
         raise credentials_error from None
     user = await session.get(User, user_id)
