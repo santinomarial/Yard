@@ -4,6 +4,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.listing import ListingCondition, ListingStatus
+from app.schemas.listing_image import ListingImageRead
 
 
 class ListingRead(BaseModel):
@@ -23,6 +24,7 @@ class ListingRead(BaseModel):
     status: ListingStatus
     pickup_zone: str
     image_url: str | None
+    images: list[ListingImageRead]
     published_at: datetime | None
     view_count: int
     save_count: int

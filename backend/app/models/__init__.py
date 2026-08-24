@@ -2,6 +2,7 @@ from app.models.bundle import Bundle, BundleItem, BundleReservation
 from app.models.buyer import BuyingIntent, ListingMatch, SavedListing
 from app.models.category import Category
 from app.models.listing import Listing, ListingCondition, ListingStatus
+from app.models.listing_image import ListingImage, ListingImageStatus
 from app.models.marketplace_event import ListingEvent, ModerationResult
 from app.models.messaging import Block, Conversation, ConversationMember, Message, MessageType
 from app.models.pickup import ArrivalStatus, PickupSession, PickupStatus
@@ -33,6 +34,8 @@ __all__ = [
     "ListingCondition",
     "ListingStatus",
     "ListingEvent",
+    "ListingImage",
+    "ListingImageStatus",
     "ListingMatch",
     "ModerationResult",
     "Message",

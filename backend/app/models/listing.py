@@ -1,12 +1,16 @@
 import uuid
 from datetime import UTC, datetime
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from sqlalchemy import CheckConstraint, DateTime, Enum, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 from app.models.category import Category
+
+if TYPE_CHECKING:
+    from app.models.listing_image import ListingImage
 
 
 class ListingCondition(StrEnum):
@@ -75,4 +79,7 @@ class Listing(Base):
     category: Mapped[Category] = relationship(foreign_keys=[category_id], lazy="joined")
     subcategory: Mapped[Category | None] = relationship(
         foreign_keys=[subcategory_id], lazy="joined"
+    )
+    images: Mapped[list["ListingImage"]] = relationship(
+        order_by="ListingImage.sort_order", lazy="selectin"
     )

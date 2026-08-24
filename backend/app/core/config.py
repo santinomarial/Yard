@@ -21,6 +21,14 @@ class Settings(BaseSettings):
         default_factory=lambda: ["harvard.edu", "college.harvard.edu", "g.harvard.edu"]
     )
     verification_code_minutes: int = 10
+    s3_public_endpoint: str = "http://localhost:9000"
+    s3_internal_endpoint: str = "http://localhost:9000"
+    s3_access_key: str = "yard"
+    s3_secret_key: str = "yard-development-only"
+    s3_region: str = "us-east-1"
+    s3_bucket: str = "yard"
+    asset_base_url: str = "http://localhost:9000/yard"
+    upload_expiration_seconds: int = 900
 
 
 @lru_cache

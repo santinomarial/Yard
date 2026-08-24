@@ -1,14 +1,40 @@
 import uuid
+from urllib.parse import quote
 
 from sqlalchemy import Select, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.models.category import Category
 from app.models.listing import Listing, ListingStatus
+from app.models.listing_image import ListingImage, ListingImageStatus
 from app.schemas.listing import ListingPage, ListingQuery, ListingRead
+from app.schemas.listing_image import ListingImageRead
+
+
+def image_url(storage_key: str) -> str:
+    return f"{get_settings().asset_base_url.rstrip('/')}/{quote(storage_key)}"
+
+
+def image_read_model(image: ListingImage) -> ListingImageRead:
+    return ListingImageRead(
+        id=image.id,
+        content_type=image.content_type,
+        byte_size=image.byte_size,
+        sort_order=image.sort_order,
+        status=image.status,
+        url=image_url(image.storage_key) if image.status == ListingImageStatus.APPROVED else None,
+        moderation_reasons=image.moderation_reasons,
+        uploaded_at=image.uploaded_at,
+    )
 
 
 def listing_read_model(listing: Listing) -> ListingRead:
+    images = [
+        image_read_model(image)
+        for image in listing.images
+        if image.status == ListingImageStatus.APPROVED
+    ]
     return ListingRead(
         id=listing.id,
         seller_id=listing.seller_id,
@@ -23,7 +49,8 @@ def listing_read_model(listing: Listing) -> ListingRead:
         condition=listing.condition,
         status=listing.status,
         pickup_zone=listing.pickup_zone,
-        image_url=listing.image_url,
+        image_url=images[0].url if images else listing.image_url,
+        images=images,
         published_at=listing.published_at,
         view_count=listing.view_count,
         save_count=listing.save_count,

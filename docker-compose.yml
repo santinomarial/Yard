@@ -42,6 +42,15 @@ services:
     volumes:
       - yard_minio:/data
 
+  minio-init:
+    image: minio/mc@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727
+    entrypoint:
+      - sh
+      - -c
+      - until mc alias set local http://minio:9000 yard yard-development-only; do sleep 1; done; mc mb --ignore-existing local/yard; mc anonymous set download local/yard
+    depends_on:
+      - minio
+
   mailpit:
     image: axllent/mailpit:v1.27
     ports:
@@ -55,6 +64,12 @@ services:
       YARD_ENVIRONMENT: development
       YARD_DATABASE_URL: postgresql+asyncpg://yard:yard@postgres:5432/yard
       YARD_REDIS_URL: redis://redis:6379/0
+      YARD_S3_PUBLIC_ENDPOINT: http://localhost:9000
+      YARD_S3_INTERNAL_ENDPOINT: http://minio:9000
+      YARD_S3_ACCESS_KEY: yard
+      YARD_S3_SECRET_KEY: yard-development-only
+      YARD_S3_BUCKET: yard
+      YARD_ASSET_BASE_URL: http://localhost:9000/yard
       RUFF_CACHE_DIR: /tmp/yard-ruff-cache
       MYPY_CACHE_DIR: /tmp/yard-mypy-cache
       PYTEST_ADDOPTS: -p no:cacheprovider
@@ -71,6 +86,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
 
   admin:
     build:
