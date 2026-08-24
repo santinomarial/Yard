@@ -34,7 +34,12 @@ struct HomeView: View {
         .navigationTitle("Yard")
         .navigationBarTitleDisplayMode(.large)
         .navigationDestination(for: Listing.self) { ListingDetailView(listing: $0) }
-        .task { await model.load(using: environment.marketplace) }
+        .task {
+            await model.load(using: environment.marketplace)
+            if let token = environment.session.accessToken {
+                await model.loadRecommendations(using: environment.buyer, accessToken: token)
+            }
+        }
     }
 
     private var marketplace: some View {
@@ -61,6 +66,10 @@ struct HomeView: View {
                 .accessibilityIdentifier("homeSearchPrompt")
 
                 categorySection
+
+                if !model.recommendations.isEmpty {
+                    recommendationSection
+                }
 
                 if !model.listings.isEmpty {
                     listingSection(title: "Recently Listed", listings: model.listings)
@@ -91,6 +100,29 @@ struct HomeView: View {
                             .background(YardTheme.Colors.surface)
                             .clipShape(Capsule())
                             .accessibilityIdentifier("category_\(category.slug)")
+                    }
+                }
+            }
+        }
+    }
+
+    private var recommendationSection: some View {
+        VStack(alignment: .leading, spacing: YardTheme.Spacing.medium) {
+            Text("For You").font(.title2.bold())
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: YardTheme.Spacing.medium) {
+                    ForEach(model.recommendations) { recommendation in
+                        NavigationLink(value: recommendation.listing) {
+                            VStack(alignment: .leading, spacing: 5) {
+                                ListingCard(listing: recommendation.listing)
+                                Text(recommendation.reasons.first ?? "Recommended")
+                                    .font(.caption)
+                                    .foregroundStyle(YardTheme.Colors.crimson)
+                                    .lineLimit(1)
+                            }
+                            .frame(width: 180)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }

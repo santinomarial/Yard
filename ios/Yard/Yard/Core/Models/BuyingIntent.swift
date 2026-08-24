@@ -36,3 +36,10 @@ struct ListingMatch: Codable, Identifiable, Hashable, Sendable {
     let scoreComponents: [String: Double]
     let listing: Listing
 }
+
+struct ListingRecommendation: Codable, Identifiable, Hashable, Sendable {
+    var id: UUID { listing.id }
+    let score: Double
+    let reasons: [String]
+    let listing: Listing
+}

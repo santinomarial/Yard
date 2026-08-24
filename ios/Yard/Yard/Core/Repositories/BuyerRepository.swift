@@ -6,6 +6,7 @@ protocol BuyerRepository: Sendable {
     func intents(accessToken: String) async throws -> [BuyingIntent]
     func createIntent(_ draft: BuyingIntentDraft, accessToken: String) async throws -> BuyingIntent
     func matches(intentID: UUID, accessToken: String) async throws -> [ListingMatch]
+    func recommendations(accessToken: String) async throws -> [ListingRecommendation]
 }
 
 actor LiveBuyerRepository: BuyerRepository {
@@ -42,6 +43,12 @@ actor LiveBuyerRepository: BuyerRepository {
             "GET", path: "api/v1/intents/\(intentID)/matches", accessToken: accessToken
         )
     }
+
+    func recommendations(accessToken: String) async throws -> [ListingRecommendation] {
+        try await client.request(
+            "GET", path: "api/v1/recommendations", accessToken: accessToken
+        )
+    }
 }
 
 actor PreviewBuyerRepository: BuyerRepository {
@@ -71,6 +78,12 @@ actor PreviewBuyerRepository: BuyerRepository {
     func matches(intentID: UUID, accessToken: String) async throws -> [ListingMatch] {
         Listing.previewListings.map {
             ListingMatch(id: UUID(), score: 0.85, scoreComponents: ["text": 0.85], listing: $0)
+        }
+    }
+
+    func recommendations(accessToken: String) async throws -> [ListingRecommendation] {
+        Listing.previewListings.map {
+            ListingRecommendation(score: 0.8, reasons: ["Recently listed"], listing: $0)
         }
     }
 }

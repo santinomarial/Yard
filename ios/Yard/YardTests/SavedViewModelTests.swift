@@ -41,4 +41,5 @@ private actor BuyerRepositoryStub: BuyerRepository {
         throw APIError.transport
     }
     func matches(intentID: UUID, accessToken: String) async throws -> [ListingMatch] { [] }
+    func recommendations(accessToken: String) async throws -> [ListingRecommendation] { [] }
 }

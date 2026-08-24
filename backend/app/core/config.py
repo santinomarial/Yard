@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     s3_bucket: str = "yard"
     asset_base_url: str = "http://localhost:9000/yard"
     upload_expiration_seconds: int = 900
+    analytics_enabled: bool = True
 
 
 @lru_cache

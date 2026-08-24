@@ -8,6 +8,7 @@ from app.core.database import get_session
 from app.core.security import CurrentUser
 from app.models.reservation import Reservation
 from app.schemas.reservation import ReservationCreate, ReservationRead, WaitlistRead
+from app.services.analytics import record_event
 from app.services.reservations import (
     ReservationError,
     cancel_reservation,
@@ -60,6 +61,15 @@ async def create_reservation(
         )
     except ReservationError as error:
         raise reservation_http_error(error) from None
+    record_event(
+        session,
+        "reservation_succeeded",
+        user_id=user.id,
+        entity_type="reservation",
+        entity_id=reservation.id,
+        properties={"listing_id": str(reservation.listing_id)},
+    )
+    await session.commit()
     return ReservationRead.model_validate(reservation)
 
 

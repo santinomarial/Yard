@@ -19,6 +19,7 @@ from app.schemas.listing_image import (
     ListingImageUploadRead,
     ListingImageUploadRequest,
 )
+from app.services.analytics import record_event
 from app.services.buyer import match_listing
 from app.services.embeddings import write_listing_embedding
 from app.services.image_moderation import (
@@ -124,6 +125,13 @@ async def create_listing_draft(
             event_type="ListingCreated",
             to_status=ListingStatus.DRAFT.value,
         )
+    )
+    record_event(
+        session,
+        "listing_created",
+        user_id=user.id,
+        entity_type="listing",
+        entity_id=listing.id,
     )
     await session.commit()
     return listing_read_model(listing)
@@ -417,7 +425,15 @@ async def list_listings(
         limit=limit,
         offset=offset,
     )
-    return await search_listings(session, filters)
+    page = await search_listings(session, filters)
+    if query:
+        record_event(
+            session,
+            "search_performed",
+            properties={"query": query.strip(), "result_count": page.total},
+        )
+        await session.commit()
+    return page
 
 
 @router.get("/{listing_id}", response_model=ListingRead)
@@ -430,4 +446,11 @@ async def listing_detail(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"code": "listing_not_found", "message": "This listing is unavailable."},
         )
+    record_event(
+        session,
+        "listing_viewed",
+        entity_type="listing",
+        entity_id=listing_id,
+    )
+    await session.commit()
     return listing

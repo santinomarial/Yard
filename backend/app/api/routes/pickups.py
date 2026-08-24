@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_session
 from app.core.security import CurrentUser
 from app.schemas.pickup import PickupPresenceUpdate, PickupProposal, PickupRead
+from app.services.analytics import record_event
 from app.services.pickups import (
     PickupError,
     accept_pickup,
@@ -61,6 +62,14 @@ async def detail(
         pickup = await get_pickup(session, reservation_id, user.id)
     except PickupError as error:
         raise pickup_http_error(error) from None
+    record_event(
+        session,
+        "pickup_scheduled",
+        user_id=user.id,
+        entity_type="pickup",
+        entity_id=pickup.id,
+    )
+    await session.commit()
     return PickupRead.model_validate(pickup)
 
 
@@ -103,6 +112,15 @@ async def complete(
         pickup = await confirm_exchange(session, reservation_id, user.id)
     except PickupError as error:
         raise pickup_http_error(error) from None
+    if pickup.status.value == "completed":
+        record_event(
+            session,
+            "exchange_completed",
+            user_id=user.id,
+            entity_type="pickup",
+            entity_id=pickup.id,
+        )
+        await session.commit()
     return PickupRead.model_validate(pickup)
 
 

@@ -8,10 +8,17 @@ from app.core.database import get_session
 from app.core.security import CurrentUser
 from app.models.buyer import BuyingIntent, ListingMatch, SavedListing
 from app.models.listing import Listing, ListingStatus
-from app.schemas.buyer import BuyingIntentCreate, BuyingIntentRead, ListingMatchRead
+from app.schemas.buyer import (
+    BuyingIntentCreate,
+    BuyingIntentRead,
+    ListingMatchRead,
+    RecommendationRead,
+)
 from app.schemas.listing import ListingRead
+from app.services.analytics import record_event
 from app.services.buyer import match_intent
 from app.services.listings import listing_read_model
+from app.services.recommendations import recommend_for_user
 
 router = APIRouter()
 
@@ -42,6 +49,13 @@ async def save_listing(
     if exists is None:
         session.add(SavedListing(user_id=user.id, listing_id=listing_id))
         listing.save_count += 1
+        record_event(
+            session,
+            "listing_saved",
+            user_id=user.id,
+            entity_type="listing",
+            entity_id=listing.id,
+        )
         await session.commit()
     return Response(status_code=204)
 
@@ -75,6 +89,13 @@ async def create_intent(
     session.add(intent)
     await session.flush()
     await match_intent(session, intent)
+    record_event(
+        session,
+        "buying_intent_created",
+        user_id=user.id,
+        entity_type="buying_intent",
+        entity_id=intent.id,
+    )
     await session.commit()
     return intent
 
@@ -118,4 +139,21 @@ async def intent_matches(
             listing=listing_read_model(listing),
         )
         for match, listing in pairs
+    ]
+
+
+@router.get("/recommendations", response_model=list[RecommendationRead])
+async def recommendations(
+    user: CurrentUser,
+    limit: int = 20,
+    session: AsyncSession = Depends(get_session),
+) -> list[RecommendationRead]:
+    items = await recommend_for_user(session, user.id, max(1, min(limit, 50)))
+    return [
+        RecommendationRead(
+            score=item.score,
+            reasons=item.reasons,
+            listing=listing_read_model(item.listing),
+        )
+        for item in items
     ]

@@ -18,6 +18,7 @@ from app.models.reservation import Reservation, ReservationStatus, WaitlistEntry
 from app.models.user import AppleIdentity, EmailVerification, User
 
 __all__ = [
+    "AnalyticsEvent",
     "AppleIdentity",
     "AdminAction",
     "ArrivalStatus",
@@ -54,3 +55,4 @@ __all__ = [
     "WaitlistStatus",
     "User",
 ]
+from app.models.analytics import AnalyticsEvent

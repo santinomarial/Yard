@@ -28,3 +28,9 @@ class ListingMatchRead(BaseModel):
     score: float
     score_components: dict[str, float]
     listing: ListingRead
+
+
+class RecommendationRead(BaseModel):
+    score: float
+    reasons: list[str]
+    listing: ListingRead

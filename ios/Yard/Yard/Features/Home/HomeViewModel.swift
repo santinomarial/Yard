@@ -13,6 +13,7 @@ final class HomeViewModel {
 
     private(set) var categories: [YardCategory] = []
     private(set) var listings: [Listing] = []
+    private(set) var recommendations: [ListingRecommendation] = []
     private(set) var state = LoadState.idle
 
     var freeListings: [Listing] {
@@ -38,5 +39,12 @@ final class HomeViewModel {
         state = .idle
         await load(using: repository)
     }
-}
 
+    func loadRecommendations(
+        using repository: any BuyerRepository,
+        accessToken: String
+    ) async {
+        do { recommendations = try await repository.recommendations(accessToken: accessToken) }
+        catch { recommendations = [] }
+    }
+}
