@@ -37,6 +37,38 @@ async def test_listing_filters_compose(client: AsyncClient) -> None:
     assert payload["items"][0]["title"] == "Walnut Desk"
 
 
+async def test_subcategory_and_listing_age_filters_compose(client: AsyncClient) -> None:
+    monitors = await client.get(
+        "/api/v1/listings",
+        params={"category": "electronics", "subcategory": "monitors", "max_age_days": 7},
+    )
+    old_desks = await client.get(
+        "/api/v1/listings",
+        params={"subcategory": "desks", "max_age_days": 7},
+    )
+
+    assert [item["title"] for item in monitors.json()["items"]] == [
+        'Dell 27" Monitor'
+    ]
+    assert old_desks.json()["items"] == []
+
+
+async def test_closest_sort_prefers_requested_zone_without_hiding_inventory(
+    client: AsyncClient,
+) -> None:
+    response = await client.get(
+        "/api/v1/listings",
+        params={"sort": "closest", "pickup_zone": "Harvard Square"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["total"] == 2
+    assert [item["title"] for item in response.json()["items"]] == [
+        "Walnut Desk",
+        'Dell 27" Monitor',
+    ]
+
+
 async def test_natural_search_extracts_free_and_price_constraints(client: AsyncClient) -> None:
     free_response = await client.get("/api/v1/listings", params={"query": "free desk"})
     priced_response = await client.get(

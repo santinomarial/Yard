@@ -58,7 +58,9 @@ async def test_presigned_image_upload_moderation_and_publish(
     await seeded_session.flush()
     seller_id, other_id = seller.id, other.id
     await seeded_session.commit()
-    category_id = await seeded_session.scalar(select(Category.id).limit(1))
+    category_id = await seeded_session.scalar(
+        select(Category.id).where(Category.parent_id.is_(None)).limit(1)
+    )
     assert category_id is not None
     seller_headers = {"Authorization": f"Bearer {create_access_token(seller_id)}"}
     other_headers = {"Authorization": f"Bearer {create_access_token(other_id)}"}

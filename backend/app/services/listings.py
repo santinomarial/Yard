@@ -1,4 +1,5 @@
 import uuid
+from datetime import UTC, datetime, timedelta
 from urllib.parse import quote
 
 from sqlalchemy import Select, case, func, or_, select, text
@@ -69,6 +70,10 @@ def _apply_filters(
         )
     if query.category:
         statement = statement.join(Listing.category).where(Category.slug == query.category)
+    if query.subcategory:
+        statement = statement.where(
+            Listing.subcategory.has(Category.slug == query.subcategory)
+        )
     if query.condition:
         statement = statement.where(Listing.condition == query.condition)
     if query.free_only:
@@ -77,8 +82,11 @@ def _apply_filters(
         statement = statement.where(Listing.price_cents >= query.min_price_cents)
     if query.max_price_cents is not None:
         statement = statement.where(Listing.price_cents <= query.max_price_cents)
-    if query.pickup_zone:
+    if query.pickup_zone and query.sort != "closest":
         statement = statement.where(Listing.pickup_zone == query.pickup_zone)
+    if query.max_age_days is not None:
+        published_after = datetime.now(UTC) - timedelta(days=query.max_age_days)
+        statement = statement.where(Listing.published_at >= published_after)
     return statement
 
 
@@ -143,6 +151,11 @@ async def search_listings(session: AsyncSession, query: ListingQuery) -> Listing
         filtered = filtered.order_by(Listing.price_cents.asc(), Listing.published_at.desc())
     elif query.sort == "price_desc":
         filtered = filtered.order_by(Listing.price_cents.desc(), Listing.published_at.desc())
+    elif query.sort == "closest" and query.pickup_zone:
+        filtered = filtered.order_by(
+            case((Listing.pickup_zone == query.pickup_zone, 0), else_=1),
+            Listing.published_at.desc(),
+        )
     elif ranked_ids is not None and query.sort == "recommended":
         rank = {listing_id: index for index, listing_id in enumerate(ranked_ids)}
         filtered = filtered.order_by(case(rank, value=Listing.id, else_=len(rank)))

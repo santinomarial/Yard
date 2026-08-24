@@ -40,11 +40,13 @@ class ListingPage(BaseModel):
 class ListingQuery(BaseModel):
     query: str | None = Field(default=None, max_length=120)
     category: str | None = None
+    subcategory: str | None = None
     condition: ListingCondition | None = None
     min_price_cents: int | None = Field(default=None, ge=0)
     max_price_cents: int | None = Field(default=None, ge=0)
     free_only: bool = False
     pickup_zone: str | None = None
+    max_age_days: int | None = Field(default=None, ge=1, le=365)
     sort: str = "recommended"
     limit: int = Field(default=30, ge=1, le=100)
     offset: int = Field(default=0, ge=0)

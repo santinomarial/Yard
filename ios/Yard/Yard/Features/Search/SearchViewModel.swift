@@ -16,16 +16,24 @@ final class SearchViewModel {
     private(set) var results: [Listing] = []
     private(set) var total = 0
     private(set) var state = State.idle
+    private(set) var categories: [YardCategory] = []
 
     var activeFilterCount: Int {
         var count = 0
         if filters.category != nil { count += 1 }
+        if filters.subcategory != nil { count += 1 }
         if filters.condition != nil { count += 1 }
         if filters.minimumPriceCents != nil || filters.maximumPriceCents != nil { count += 1 }
         if filters.freeOnly { count += 1 }
         if filters.pickupZone != nil { count += 1 }
+        if filters.maximumAgeDays != nil { count += 1 }
         if filters.sort != .newest { count += 1 }
         return count
+    }
+
+    func loadCategories(using repository: any MarketplaceRepository) async {
+        guard categories.isEmpty else { return }
+        categories = (try? await repository.categories()) ?? []
     }
 
     func search(using repository: any MarketplaceRepository) async {
@@ -48,4 +56,3 @@ final class SearchViewModel {
         filters = ListingFilters(query: query)
     }
 }
-

@@ -25,6 +25,9 @@ actor LiveMarketplaceRepository: MarketplaceRepository {
         if let category = filters.category {
             items.append(URLQueryItem(name: "category", value: category))
         }
+        if let subcategory = filters.subcategory {
+            items.append(URLQueryItem(name: "subcategory", value: subcategory))
+        }
         if let condition = filters.condition {
             items.append(URLQueryItem(name: "condition", value: condition.rawValue))
         }
@@ -40,6 +43,9 @@ actor LiveMarketplaceRepository: MarketplaceRepository {
         if let pickupZone = filters.pickupZone {
             items.append(URLQueryItem(name: "pickup_zone", value: pickupZone))
         }
+        if let maximumAgeDays = filters.maximumAgeDays {
+            items.append(URLQueryItem(name: "max_age_days", value: String(maximumAgeDays)))
+        }
         items.append(URLQueryItem(name: "sort", value: filters.sort.rawValue))
         return try await client.get("api/v1/listings", queryItems: items)
     }
@@ -48,4 +54,3 @@ actor LiveMarketplaceRepository: MarketplaceRepository {
         try await client.get("api/v1/listings/\(id.uuidString)")
     }
 }
-

@@ -75,11 +75,13 @@ struct ListingPage: Codable, Sendable {
 struct ListingFilters: Equatable, Sendable {
     var query = ""
     var category: String?
+    var subcategory: String?
     var condition: ListingCondition?
     var minimumPriceCents: Int?
     var maximumPriceCents: Int?
     var freeOnly = false
     var pickupZone: String?
+    var maximumAgeDays: Int?
     var sort = ListingSort.recommended
 }
 
@@ -88,6 +90,7 @@ enum ListingSort: String, CaseIterable, Sendable {
     case newest
     case priceAscending = "price_asc"
     case priceDescending = "price_desc"
+    case closest
 
     var displayName: String {
         switch self {
@@ -95,6 +98,7 @@ enum ListingSort: String, CaseIterable, Sendable {
         case .newest: "Newest"
         case .priceAscending: "Price: low to high"
         case .priceDescending: "Price: high to low"
+        case .closest: "Closest pickup match"
         }
     }
 }

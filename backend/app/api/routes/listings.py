@@ -421,12 +421,17 @@ async def delete_image(
 async def list_listings(
     query: str | None = Query(default=None, max_length=120),
     category: str | None = None,
+    subcategory: str | None = None,
     condition: ListingCondition | None = None,
     min_price_cents: int | None = Query(default=None, ge=0),
     max_price_cents: int | None = Query(default=None, ge=0),
     free_only: bool = False,
     pickup_zone: str | None = None,
-    sort: str = Query(default="recommended", pattern="^(recommended|newest|price_asc|price_desc)$"),
+    max_age_days: int | None = Query(default=None, ge=1, le=365),
+    sort: str = Query(
+        default="recommended",
+        pattern="^(recommended|newest|price_asc|price_desc|closest)$",
+    ),
     limit: int = Query(default=30, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     session: AsyncSession = Depends(get_session),
@@ -435,6 +440,7 @@ async def list_listings(
     filters = ListingQuery(
         query=natural.text,
         category=category,
+        subcategory=subcategory,
         condition=condition,
         min_price_cents=min_price_cents,
         max_price_cents=(
@@ -442,6 +448,7 @@ async def list_listings(
         ),
         free_only=free_only or natural.free_only,
         pickup_zone=pickup_zone,
+        max_age_days=max_age_days,
         sort=sort,
         limit=limit,
         offset=offset,

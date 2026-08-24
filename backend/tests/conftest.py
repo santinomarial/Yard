@@ -1,6 +1,6 @@
 import uuid
 from collections.abc import AsyncIterator
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
@@ -35,6 +35,15 @@ async def seeded_session(session: AsyncSession) -> AsyncSession:
     furniture = Category(name="Furniture", slug="furniture", symbol="chair.lounge")
     session.add_all([electronics, furniture])
     await session.flush()
+    monitors = Category(
+        name="Monitors",
+        slug="monitors",
+        symbol="display",
+        parent=electronics,
+    )
+    desks = Category(name="Desks", slug="desks", symbol="table.furniture", parent=furniture)
+    session.add_all([monitors, desks])
+    await session.flush()
     session.add_all(
         [
             Listing(
@@ -42,6 +51,7 @@ async def seeded_session(session: AsyncSession) -> AsyncSession:
                 title='Dell 27" Monitor',
                 description="A sharp second screen for coding.",
                 category=electronics,
+                subcategory=monitors,
                 price_cents=8500,
                 is_free=False,
                 condition=ListingCondition.GOOD,
@@ -54,12 +64,13 @@ async def seeded_session(session: AsyncSession) -> AsyncSession:
                 title="Walnut Desk",
                 description="Compact dorm desk.",
                 category=furniture,
+                subcategory=desks,
                 price_cents=0,
                 is_free=True,
                 condition=ListingCondition.FAIR,
                 status=ListingStatus.ACTIVE,
                 pickup_zone="Harvard Square",
-                published_at=datetime.now(UTC),
+                published_at=datetime.now(UTC) - timedelta(days=40),
             ),
             Listing(
                 seller_id=uuid.uuid4(),

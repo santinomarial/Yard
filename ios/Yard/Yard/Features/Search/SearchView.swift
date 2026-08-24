@@ -60,7 +60,11 @@ struct SearchView: View {
             }
         }
         .sheet(isPresented: $showsFilters) {
-            SearchFilterSheet(filters: $model.filters, reset: model.resetFilters)
+            SearchFilterSheet(
+                filters: $model.filters,
+                categories: model.categories,
+                reset: model.resetFilters
+            )
                 .presentationDetents([.medium, .large])
         }
         .navigationDestination(for: Listing.self) { ListingDetailView(listing: $0) }
@@ -71,6 +75,7 @@ struct SearchView: View {
             guard !Task.isCancelled else { return }
             await model.search(using: environment.marketplace)
         }
+        .task { await model.loadCategories(using: environment.marketplace) }
         .accessibilityIdentifier("searchView")
     }
 
@@ -98,12 +103,37 @@ struct SearchView: View {
 
 private struct SearchFilterSheet: View {
     @Binding var filters: ListingFilters
+    let categories: [YardCategory]
     let reset: () -> Void
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
             Form {
+                Section("Category") {
+                    Picker("Category", selection: $filters.category) {
+                        Text("All categories").tag(Optional<String>.none)
+                        ForEach(categories) { category in
+                            Text(category.name).tag(Optional(category.slug))
+                        }
+                    }
+                    .onChange(of: filters.category) { _, _ in
+                        filters.subcategory = nil
+                    }
+
+                    if let selectedCategory = categories.first(where: {
+                        $0.slug == filters.category
+                    }), !selectedCategory.children.isEmpty {
+                        Picker("Subcategory", selection: $filters.subcategory) {
+                            Text("All \(selectedCategory.name.lowercased())")
+                                .tag(Optional<String>.none)
+                            ForEach(selectedCategory.children) { subcategory in
+                                Text(subcategory.name).tag(Optional(subcategory.slug))
+                            }
+                        }
+                    }
+                }
+
                 Section("Price") {
                     Toggle("Free only", isOn: $filters.freeOnly)
                     Picker("Maximum price", selection: $filters.maximumPriceCents) {
@@ -122,6 +152,27 @@ private struct SearchFilterSheet: View {
                         ForEach(ListingCondition.allCases, id: \.self) { condition in
                             Text(condition.displayName).tag(Optional(condition))
                         }
+                    }
+                }
+
+                Section("Pickup and freshness") {
+                    Picker("Pickup zone", selection: $filters.pickupZone) {
+                        Text("Anywhere on campus").tag(Optional<String>.none)
+                        ForEach(Self.pickupZones, id: \.self) { zone in
+                            Text(zone).tag(Optional(zone))
+                        }
+                    }
+                    Picker("Listed", selection: $filters.maximumAgeDays) {
+                        Text("Any time").tag(Optional<Int>.none)
+                        Text("Past 24 hours").tag(Optional(1))
+                        Text("Past 3 days").tag(Optional(3))
+                        Text("Past week").tag(Optional(7))
+                        Text("Past month").tag(Optional(30))
+                    }
+                    if filters.sort == .closest && filters.pickupZone == nil {
+                        Text("Choose a pickup zone to rank matching listings first.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     }
                 }
 
@@ -147,10 +198,14 @@ private struct SearchFilterSheet: View {
             }
         }
     }
+
+    private static let pickupZones = [
+        "Harvard Yard", "Science Center", "Smith Campus Center",
+        "River Houses", "Quad", "Allston",
+    ]
 }
 
 #Preview {
     NavigationStack { SearchView() }
         .environment(AppEnvironment(marketplace: PreviewMarketplaceRepository()))
 }
-
