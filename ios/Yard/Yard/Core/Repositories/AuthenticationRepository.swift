@@ -9,6 +9,7 @@ protocol AuthenticationRepository: Sendable {
         -> VerificationRequestResponse
     func confirmVerification(email: String, code: String, accessToken: String) async throws
         -> YardUser
+    func redeemReviewAccess(code: String, accessToken: String) async throws -> YardUser
     func updateProfile(displayName: String, accessToken: String) async throws -> YardUser
     func deleteAccount(accessToken: String) async throws
 }
@@ -64,6 +65,15 @@ actor LiveAuthenticationRepository: AuthenticationRepository {
         )
     }
 
+    func redeemReviewAccess(code: String, accessToken: String) async throws -> YardUser {
+        try await client.request(
+            "POST",
+            path: "api/v1/auth/review-access",
+            body: ReviewAccessBody(code: code),
+            accessToken: accessToken
+        )
+    }
+
     func updateProfile(displayName: String, accessToken: String) async throws -> YardUser {
         try await client.request(
             "PATCH",
@@ -96,6 +106,10 @@ private struct VerificationEmailBody: Encodable, Sendable {
 
 private struct VerificationCodeBody: Encodable, Sendable {
     let email: String
+    let code: String
+}
+
+private struct ReviewAccessBody: Encodable, Sendable {
     let code: String
 }
 

@@ -16,6 +16,7 @@ ALLOWED_EVENTS = {
     "reservation_succeeded",
     "pickup_scheduled",
     "exchange_completed",
+    "review_access_redeemed",
 }
 
 

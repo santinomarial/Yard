@@ -20,6 +20,8 @@ class UserRead(BaseModel):
     id: uuid.UUID
     display_name: str
     harvard_email_verified: bool
+    marketplace_access_granted: bool
+    access_method: Literal["none", "harvard_email", "app_review"]
     member_since: datetime
     suspended: bool
     admin: bool
@@ -47,3 +49,7 @@ class VerificationRequested(BaseModel):
 class VerificationConfirm(BaseModel):
     email: str = Field(min_length=5, max_length=254)
     code: str = Field(pattern=r"^\d{6}$")
+
+
+class ReviewAccessRequest(BaseModel):
+    code: str = Field(min_length=12, max_length=80)

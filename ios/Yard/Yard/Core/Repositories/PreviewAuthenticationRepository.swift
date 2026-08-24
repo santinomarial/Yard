@@ -5,6 +5,8 @@ struct PreviewAuthenticationRepository: AuthenticationRepository {
         id: UUID(uuidString: "8F5A225D-0208-4AC1-A01C-B86E0FE88DD8")!,
         displayName: "Alex Rivers",
         harvardEmailVerified: true,
+        marketplaceAccessGranted: true,
+        accessMethod: .harvardEmail,
         memberSince: .now,
         suspended: false,
         admin: false
@@ -32,10 +34,14 @@ struct PreviewAuthenticationRepository: AuthenticationRepository {
         email: String, code: String, accessToken: String
     ) async throws -> YardUser { user }
 
+    func redeemReviewAccess(code: String, accessToken: String) async throws -> YardUser { user }
+
     func updateProfile(displayName: String, accessToken: String) async throws -> YardUser {
         YardUser(
             id: user.id, displayName: displayName,
             harvardEmailVerified: user.harvardEmailVerified,
+            marketplaceAccessGranted: user.marketplaceAccessGranted,
+            accessMethod: user.accessMethod,
             memberSince: user.memberSince, suspended: user.suspended, admin: user.admin
         )
     }

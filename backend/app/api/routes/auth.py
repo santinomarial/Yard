@@ -14,18 +14,26 @@ from app.schemas.auth import (
     AppleSignInRequest,
     AuthResponse,
     DevelopmentSignInRequest,
+    ReviewAccessRequest,
     UserRead,
     UserUpdate,
     VerificationConfirm,
     VerificationRequest,
     VerificationRequested,
 )
+from app.services.analytics import record_event
 from app.services.apple_auth import AppleIdentityTokenVerifier, AppleTokenError
 from app.services.email_verification import (
     VerificationError,
     confirm_verification,
     create_verification,
     get_email_provider,
+)
+from app.services.review_access import (
+    ReviewAccessError,
+    has_marketplace_access,
+    marketplace_access_method,
+    redeem_review_invite,
 )
 
 router = APIRouter()
@@ -37,6 +45,8 @@ def user_read(user: User) -> UserRead:
         id=user.id,
         display_name=user.display_name,
         harvard_email_verified=user.email_verified_at is not None,
+        marketplace_access_granted=has_marketplace_access(user),
+        access_method=marketplace_access_method(user),
         member_since=user.created_at,
         suspended=user.suspended_at is not None,
         admin=user.is_admin,
@@ -150,6 +160,7 @@ async def delete_me(
     persisted.display_name = "Deleted Yard member"
     persisted.harvard_email = None
     persisted.email_verified_at = None
+    persisted.review_access_expires_at = None
     persisted.terms_accepted_at = None
     persisted.is_admin = False
     persisted.deleted_at = datetime.now(UTC)
@@ -199,3 +210,32 @@ async def verify_email(
             detail={"code": error.code, "message": str(error)},
         ) from None
     return user_read(user)
+
+
+@router.post("/review-access", response_model=UserRead)
+async def redeem_app_review_access(
+    payload: ReviewAccessRequest,
+    user: CurrentUser,
+    session: AsyncSession = Depends(get_session),
+) -> UserRead:
+    try:
+        updated = await redeem_review_invite(
+            session,
+            user_id=user.id,
+            code=payload.code,
+            pepper=settings.verification_pepper,
+        )
+    except ReviewAccessError as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "review_access_invalid", "message": str(error)},
+        ) from None
+    record_event(
+        session,
+        "review_access_redeemed",
+        user_id=updated.id,
+        entity_type="user",
+        entity_id=updated.id,
+    )
+    await session.commit()
+    return user_read(updated)

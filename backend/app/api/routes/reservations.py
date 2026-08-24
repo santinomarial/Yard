@@ -18,6 +18,7 @@ from app.services.reservations import (
     join_waitlist,
     reserve_listing,
 )
+from app.services.review_access import has_marketplace_access
 
 router = APIRouter()
 
@@ -49,7 +50,7 @@ async def create_reservation(
     user: CurrentUser,
     session: AsyncSession = Depends(get_session),
 ) -> ReservationRead:
-    if user.email_verified_at is None:
+    if not has_marketplace_access(user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={

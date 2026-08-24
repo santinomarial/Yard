@@ -38,6 +38,7 @@ from app.services.listings import (
 from app.services.moderation import DeterministicDevelopmentModeration
 from app.services.notifications import enqueue_notification
 from app.services.object_storage import ObjectStorage, get_object_storage
+from app.services.review_access import has_marketplace_access
 from app.services.search_query import parse_natural_search
 
 router = APIRouter()
@@ -71,7 +72,7 @@ def detected_image_type(prefix: bytes) -> str | None:
 
 
 def require_verified(user: CurrentUser) -> None:
-    if user.email_verified_at is None:
+    if not has_marketplace_access(user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={

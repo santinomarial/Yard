@@ -94,6 +94,22 @@ final class UserSession {
         isWorking = false
     }
 
+    func redeemReviewAccess(code: String) async {
+        guard let accessToken else { return }
+        isWorking = true
+        errorMessage = nil
+        do {
+            let user = try await repository.redeemReviewAccess(
+                code: code.trimmingCharacters(in: .whitespacesAndNewlines),
+                accessToken: accessToken
+            )
+            phase = .signedIn(user)
+        } catch {
+            errorMessage = error.userFacingMessage
+        }
+        isWorking = false
+    }
+
     func signOut() {
         try? tokenStore.clear()
         accessToken = nil

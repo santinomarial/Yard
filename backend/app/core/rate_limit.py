@@ -25,6 +25,8 @@ def policy_for(request: Request) -> RateLimit | None:
         return RateLimit(10, 60)
     if "/auth/verification/" in path:
         return RateLimit(10, 3_600)
+    if path.endswith("/auth/review-access"):
+        return RateLimit(5, 3_600)
     if path.endswith("/reservations"):
         return RateLimit(30, 60)
     if "/messages" in path:

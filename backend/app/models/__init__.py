@@ -16,11 +16,12 @@ from app.models.report import (
     ReportTarget,
 )
 from app.models.reservation import Reservation, ReservationStatus, WaitlistEntry, WaitlistStatus
-from app.models.user import AppleIdentity, EmailVerification, User
+from app.models.user import AppleIdentity, AppReviewInvite, EmailVerification, User
 
 __all__ = [
     "AnalyticsEvent",
     "AppleIdentity",
+    "AppReviewInvite",
     "AdminAction",
     "ArrivalStatus",
     "BuyingIntent",

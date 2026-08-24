@@ -64,6 +64,8 @@ private struct StubAuthenticationRepository: AuthenticationRepository {
         id: UUID(uuidString: "DE229658-E8AA-4F19-9908-105458FBF009")!,
         displayName: "Test Member",
         harvardEmailVerified: true,
+        marketplaceAccessGranted: true,
+        accessMethod: .harvardEmail,
         memberSince: .now,
         suspended: false,
         admin: false
@@ -91,10 +93,14 @@ private struct StubAuthenticationRepository: AuthenticationRepository {
         email: String, code: String, accessToken: String
     ) async throws -> YardUser { user }
 
+    func redeemReviewAccess(code: String, accessToken: String) async throws -> YardUser { user }
+
     func updateProfile(displayName: String, accessToken: String) async throws -> YardUser {
         YardUser(
             id: user.id, displayName: displayName,
             harvardEmailVerified: user.harvardEmailVerified,
+            marketplaceAccessGranted: user.marketplaceAccessGranted,
+            accessMethod: user.accessMethod,
             memberSince: user.memberSince, suspended: false, admin: false
         )
     }

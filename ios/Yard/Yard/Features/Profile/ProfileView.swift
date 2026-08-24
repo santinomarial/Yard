@@ -148,7 +148,11 @@ struct ProfileView: View {
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 5) {
                     Text(user.displayName).font(.title3.bold())
-                    Label("Harvard email verified", systemImage: "checkmark.seal.fill")
+                    Label(
+                        user.accessMethod == .appReview
+                            ? "Temporary App Review access" : "Harvard email verified",
+                        systemImage: "checkmark.seal.fill"
+                    )
                         .font(.subheadline).foregroundStyle(.green)
                     Text("Member since \(user.memberSince.formatted(.dateTime.month(.wide).year()))")
                         .font(.caption).foregroundStyle(.secondary)

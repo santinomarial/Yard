@@ -14,7 +14,7 @@ struct AuthenticationGate: View {
             case .signedOut:
                 SignInView()
             case let .signedIn(user):
-                if user.harvardEmailVerified {
+                if user.marketplaceAccessGranted {
                     RootTabView()
                 } else {
                     HarvardVerificationView()
@@ -98,6 +98,7 @@ private struct HarvardVerificationView: View {
     @Environment(AppEnvironment.self) private var environment
     @State private var email = ""
     @State private var code = ""
+    @State private var reviewCode = ""
 
     var body: some View {
         NavigationStack {
@@ -139,6 +140,22 @@ private struct HarvardVerificationView: View {
                             .foregroundStyle(.secondary)
                         #endif
                     }
+                }
+
+                Section {
+                    TextField("Single-use review code", text: $reviewCode)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .textContentType(.oneTimeCode)
+                        .accessibilityIdentifier("appReviewAccessCodeField")
+                    Button("Redeem App Review access") {
+                        Task { await environment.session.redeemReviewAccess(code: reviewCode) }
+                    }
+                    .disabled(reviewCode.trimmingCharacters(in: .whitespacesAndNewlines).count < 12)
+                } header: {
+                    Text("App Review access")
+                } footer: {
+                    Text("Only Apple App Review personnel with a current single-use invitation should use this option. Codes expire and work once.")
                 }
 
                 if let error = environment.session.errorMessage {
