@@ -5,6 +5,9 @@ struct ChatView: View {
     let listingTitle: String
     @Environment(AppEnvironment.self) private var environment
     @State private var model = ChatViewModel()
+    @State private var reportTarget: ReportTargetReference?
+    @State private var showsBlockConfirmation = false
+    @State private var safetyMessage: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -23,7 +26,14 @@ struct ChatView: View {
                             ForEach(model.messages) { message in
                                 MessageBubble(
                                     message: message,
-                                    isMine: message.senderID == environment.session.currentUser?.id
+                                    isMine: message.senderID == environment.session.currentUser?.id,
+                                    onReport: {
+                                        reportTarget = ReportTargetReference(
+                                            type: .message,
+                                            targetID: message.id,
+                                            title: "Message: \(message.body.prefix(80))"
+                                        )
+                                    }
                                 )
                                 .id(message.id)
                             }
@@ -56,6 +66,32 @@ struct ChatView: View {
         }
         .navigationTitle(listingTitle)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu("Safety", systemImage: "ellipsis") {
+                    Button("Report user", role: .destructive) {
+                        guard let otherUserID else { return }
+                        reportTarget = ReportTargetReference(
+                            type: .user, targetID: otherUserID, title: "Conversation member"
+                        )
+                    }
+                    Button("Block user", role: .destructive) {
+                        showsBlockConfirmation = true
+                    }
+                }
+            }
+        }
+        .sheet(item: $reportTarget) { ReportSheet(target: $0) }
+        .confirmationDialog("Block this user?", isPresented: $showsBlockConfirmation) {
+            Button("Block user", role: .destructive) { Task { await blockUser() } }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("They will no longer be able to continue direct interaction with you.")
+        }
+        .alert("Yard", isPresented: Binding(
+            get: { safetyMessage != nil },
+            set: { if !$0 { safetyMessage = nil } }
+        )) { Button("OK", role: .cancel) {} } message: { Text(safetyMessage ?? "") }
         .task { await load() }
         .refreshable { await load() }
     }
@@ -77,11 +113,26 @@ struct ChatView: View {
             accessToken: token
         )
     }
+
+    private var otherUserID: UUID? {
+        conversation.memberIDs.first { $0 != environment.session.currentUser?.id }
+    }
+
+    private func blockUser() async {
+        guard let token = environment.session.accessToken, let otherUserID else { return }
+        do {
+            try await environment.safety.block(userID: otherUserID, accessToken: token)
+            safetyMessage = "This user is blocked."
+        } catch {
+            safetyMessage = error.transactionMessage
+        }
+    }
 }
 
 private struct MessageBubble: View {
     let message: YardMessage
     let isMine: Bool
+    let onReport: () -> Void
 
     var body: some View {
         HStack {
@@ -101,5 +152,10 @@ private struct MessageBubble: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(isMine ? "You" : "Seller"): \(message.body)")
+        .contextMenu {
+            if !isMine, message.messageType == .text {
+                Button("Report message", role: .destructive, action: onReport)
+            }
+        }
     }
 }

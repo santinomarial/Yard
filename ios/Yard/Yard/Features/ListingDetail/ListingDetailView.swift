@@ -11,6 +11,7 @@ struct ListingDetailView: View {
     @State private var isPerformingTransaction = false
     @State private var showsWaitlistPrompt = false
     @State private var reservationKey = UUID().uuidString
+    @State private var reportTarget: ReportTargetReference?
 
     var body: some View {
         ScrollView {
@@ -74,6 +75,9 @@ struct ListingDetailView: View {
         .sheet(item: $reservation) { reservation in
             ReservationConfirmationView(reservation: reservation, listing: listing)
         }
+        .sheet(item: $reportTarget) { target in
+            ReportSheet(target: target)
+        }
         .confirmationDialog(
             "This item was just reserved",
             isPresented: $showsWaitlistPrompt,
@@ -101,7 +105,11 @@ struct ListingDetailView: View {
                     .disabled(isUpdatingSavedState)
                     .accessibilityIdentifier("saveListingButton")
                 Menu("More", systemImage: "ellipsis") {
-                    Button("Report listing", role: .destructive) {}
+                    Button("Report listing", role: .destructive) {
+                        reportTarget = ReportTargetReference(
+                            type: .listing, targetID: listing.id, title: listing.title
+                        )
+                    }
                 }
             }
         }

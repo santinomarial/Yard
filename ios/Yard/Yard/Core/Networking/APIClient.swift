@@ -152,9 +152,10 @@ actor APIClient {
             request.httpBody = try JSONEncoder.yard.encode(body)
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
+        let data: Data
         let response: URLResponse
         do {
-            (_, response) = try await session.data(for: request)
+            (data, response) = try await session.data(for: request)
         } catch is CancellationError {
             throw CancellationError()
         } catch {
@@ -164,6 +165,13 @@ actor APIClient {
             throw APIError.invalidResponse
         }
         guard (200..<300).contains(httpResponse.statusCode) else {
+            if let envelope = try? decoder.decode(ErrorEnvelope.self, from: data) {
+                throw APIError.rejected(
+                    statusCode: httpResponse.statusCode,
+                    code: envelope.error.code,
+                    message: envelope.error.message
+                )
+            }
             throw APIError.rejected(
                 statusCode: httpResponse.statusCode,
                 code: "request_failed",
