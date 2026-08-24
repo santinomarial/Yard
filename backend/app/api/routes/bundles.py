@@ -92,7 +92,11 @@ async def reserve(
         reservation, _ = await reserve_bundle(session, bundle_id, user.id, payload.idempotency_key)
     except ReservationError as error:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
+            status_code=(
+                status.HTTP_403_FORBIDDEN
+                if error.code == "interaction_blocked"
+                else status.HTTP_409_CONFLICT
+            ),
             detail={"code": error.code, "message": str(error)},
         ) from None
     return BundleReservationRead.model_validate(reservation)

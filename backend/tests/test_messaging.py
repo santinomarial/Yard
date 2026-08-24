@@ -105,6 +105,21 @@ async def test_private_conversation_messages_read_state_and_blocking(
     assert rejected.status_code == 403
     assert rejected.json()["error"]["code"] == "interaction_blocked"
 
+    reopened = await client.post(
+        "/api/v1/conversations",
+        json={"listing_id": str(listing_id)},
+        headers=buyer_headers,
+    )
+    reserved = await client.post(
+        "/api/v1/reservations",
+        json={"listing_id": str(listing_id), "idempotency_key": "blocked-reservation"},
+        headers=buyer_headers,
+    )
+    assert reopened.status_code == 403
+    assert reopened.json()["error"]["code"] == "interaction_blocked"
+    assert reserved.status_code == 403
+    assert reserved.json()["error"]["code"] == "interaction_blocked"
+
 
 async def test_seller_cannot_open_buyer_conversation(
     client: AsyncClient, seeded_session: AsyncSession

@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.bundle import Bundle, BundleItem, BundleReservation
 from app.models.listing import Listing, ListingStatus
 from app.models.reservation import Reservation, ReservationStatus
+from app.services.blocks import interaction_is_blocked
 from app.services.listing_lifecycle import transition_listing
 from app.services.reservations import ReservationError
 
@@ -38,6 +39,8 @@ async def reserve_bundle(
             raise ReservationError("bundle_unavailable", "This bundle is unavailable.")
         if bundle.seller_id == buyer_id:
             raise ReservationError("seller_cannot_reserve", "You cannot reserve your own bundle.")
+        if await interaction_is_blocked(session, buyer_id, bundle.seller_id):
+            raise ReservationError("interaction_blocked", "This interaction is unavailable.")
         item_ids = list(
             (
                 await session.scalars(

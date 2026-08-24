@@ -1,10 +1,11 @@
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import or_, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.messaging import Block, Conversation, ConversationMember, Message, MessageType
+from app.models.messaging import Conversation, ConversationMember, Message, MessageType
+from app.services.blocks import interaction_is_blocked
 
 
 class MessagingError(ValueError):
@@ -40,16 +41,9 @@ async def ensure_not_blocked(
     peers = [member for member in members if member != sender_id]
     if not peers:
         raise MessagingError("conversation_invalid", "This conversation has no recipient.")
-    blocked = await session.scalar(
-        select(Block.blocker_id).where(
-            or_(
-                Block.blocker_id == sender_id,
-                Block.blocked_id == sender_id,
-            ),
-            or_(Block.blocker_id.in_(peers), Block.blocked_id.in_(peers)),
-        )
-    )
-    if blocked:
+    if any(
+        [await interaction_is_blocked(session, sender_id, peer) for peer in peers]
+    ):
         raise MessagingError("interaction_blocked", "Messaging is unavailable.")
 
 

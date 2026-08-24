@@ -26,7 +26,13 @@ router = APIRouter()
 def reservation_http_error(error: ReservationError) -> HTTPException:
     not_found = error.code.endswith("not_found")
     return HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND if not_found else status.HTTP_409_CONFLICT,
+        status_code=(
+            status.HTTP_404_NOT_FOUND
+            if not_found
+            else status.HTTP_403_FORBIDDEN
+            if error.code == "interaction_blocked"
+            else status.HTTP_409_CONFLICT
+        ),
         detail={"code": error.code, "message": str(error)},
     )
 

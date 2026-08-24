@@ -7,6 +7,7 @@ from sqlalchemy import select
 
 from app.core.database import SessionFactory
 from app.models import (
+    Block,
     Bundle,
     BundleItem,
     Category,
@@ -143,6 +144,30 @@ async def test_waitlist_promotion_keeps_inventory_from_direct_buyers() -> None:
     async with SessionFactory() as session:
         claimed = await claim_waitlist_offer(session, first_in_line.id, buyers[1])
         assert claimed.buyer_id == buyers[1]
+
+
+async def test_waitlist_promotion_skips_users_blocked_by_seller() -> None:
+    listing_id, buyers = await setup_inventory()
+    async with SessionFactory() as session:
+        reservation, _ = await reserve_listing(
+            session, listing_id, buyers[0], f"blocked-first-{uuid.uuid4()}"
+        )
+    async with SessionFactory() as session:
+        blocked_entry = await join_waitlist(session, listing_id, buyers[1])
+    async with SessionFactory() as session:
+        eligible_entry = await join_waitlist(session, listing_id, buyers[2])
+    async with SessionFactory() as session, session.begin():
+        listing = await session.get(Listing, listing_id)
+        assert listing is not None
+        session.add(Block(blocker_id=listing.seller_id, blocked_id=buyers[1]))
+    async with SessionFactory() as session:
+        await cancel_reservation(session, reservation.id, buyers[0])
+
+    async with SessionFactory() as session:
+        blocked = await session.get(WaitlistEntry, blocked_entry.id)
+        eligible = await session.get(WaitlistEntry, eligible_entry.id)
+        assert blocked is not None and blocked.status == WaitlistStatus.REMOVED
+        assert eligible is not None and eligible.status == WaitlistStatus.OFFERED
 
 
 async def test_bundle_and_individual_reservation_cannot_double_allocate() -> None:

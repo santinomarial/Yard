@@ -20,6 +20,7 @@ from app.schemas.messaging import (
     MessageCreate,
     MessageRead,
 )
+from app.services.blocks import interaction_is_blocked
 from app.services.messaging import MessagingError, member_ids, persist_message, require_member
 from app.services.notifications import enqueue_notification
 
@@ -53,6 +54,8 @@ async def create_conversation(
     listing = await session.get(Listing, payload.listing_id)
     if listing is None or listing.seller_id == user.id:
         raise HTTPException(status_code=404, detail="Not found")
+    if await interaction_is_blocked(session, user.id, listing.seller_id):
+        raise messaging_error(MessagingError("interaction_blocked", "Messaging is unavailable."))
     existing = await session.scalar(
         select(Conversation).where(
             Conversation.listing_id == listing.id,

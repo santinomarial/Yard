@@ -14,6 +14,7 @@ from app.models.reservation import (
     WaitlistEntry,
     WaitlistStatus,
 )
+from app.services.blocks import interaction_is_blocked
 from app.services.listing_lifecycle import transition_listing
 
 
@@ -26,17 +27,20 @@ class ReservationError(ValueError):
 async def release_or_promote(
     session: AsyncSession, listing: Listing, actor_id: uuid.UUID, event_type: str
 ) -> WaitlistEntry | None:
-    next_entry = await session.scalar(
+    candidates = await session.scalars(
         select(WaitlistEntry)
         .where(
             WaitlistEntry.listing_id == listing.id,
             WaitlistEntry.status == WaitlistStatus.WAITING,
         )
         .order_by(WaitlistEntry.created_at, WaitlistEntry.id)
-        .limit(1)
+        .limit(100)
         .with_for_update(skip_locked=True)
     )
-    if next_entry:
+    for next_entry in candidates:
+        if await interaction_is_blocked(session, next_entry.buyer_id, listing.seller_id):
+            next_entry.status = WaitlistStatus.REMOVED
+            continue
         now = datetime.now(UTC)
         next_entry.status = WaitlistStatus.OFFERED
         next_entry.offered_at = now
@@ -95,6 +99,8 @@ async def reserve_listing(
             return existing, False
         if listing.seller_id == buyer_id:
             raise ReservationError("seller_cannot_reserve", "You cannot reserve your own listing.")
+        if await interaction_is_blocked(session, buyer_id, listing.seller_id):
+            raise ReservationError("interaction_blocked", "This interaction is unavailable.")
         if listing.status != ListingStatus.ACTIVE:
             raise ReservationError(
                 "listing_already_reserved", "This item was reserved by another buyer."
@@ -203,6 +209,8 @@ async def join_waitlist(
             raise ReservationError("waitlist_unavailable", "This listing has no active waitlist.")
         if listing.seller_id == buyer_id:
             raise ReservationError("seller_cannot_waitlist", "You cannot join your own waitlist.")
+        if await interaction_is_blocked(session, buyer_id, listing.seller_id):
+            raise ReservationError("interaction_blocked", "This interaction is unavailable.")
         existing = await session.scalar(
             select(WaitlistEntry).where(
                 WaitlistEntry.listing_id == listing_id, WaitlistEntry.buyer_id == buyer_id
@@ -251,6 +259,9 @@ async def claim_waitlist_offer(
         )
         if listing is None or listing.status != ListingStatus.RESERVED:
             raise ReservationError("stale_listing_state", "The listing state changed.")
+        if await interaction_is_blocked(session, buyer_id, listing.seller_id):
+            entry.status = WaitlistStatus.REMOVED
+            raise ReservationError("interaction_blocked", "This interaction is unavailable.")
         reservation = Reservation(
             id=uuid.uuid4(),
             listing_id=listing.id,
