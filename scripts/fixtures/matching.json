@@ -1,0 +1,10 @@
+{
+  "intents": [
+    {"query": "coding monitor", "maximum_price_cents": 12000, "pickup_zone": "Kirkland House area"},
+    {"query": "road bike", "maximum_price_cents": 15000}
+  ],
+  "listings": [
+    {"id": "11408445-3907-55c2-848e-8ad314eb1c7b", "seller_id": "67f936cf-c018-5ebf-94b5-59bf099885f3", "title": "Dell coding monitor", "description": "27 inch second display", "category_id": "c749ad33-4a65-582d-a294-c30305647020", "price_cents": 8500, "condition": "good", "pickup_zone": "Kirkland House area"},
+    {"id": "9bdd28cc-5db8-55dc-b91b-2bf454c7ad41", "seller_id": "e9c12c60-3ef2-5da9-8b79-f8fcf9f41e08", "title": "Road bike", "description": "Reliable campus commuter", "category_id": "7d713c91-7407-55ea-b415-fe0f7a0b939c", "price_cents": 12000, "condition": "fair", "pickup_zone": "Quad"}
+  ]
+}

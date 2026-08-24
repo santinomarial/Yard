@@ -11,6 +11,7 @@ from app.models.category import Category
 from app.models.listing import Listing, ListingCondition, ListingStatus
 from app.models.marketplace_event import ListingEvent, ModerationResult
 from app.schemas.listing import ListingDraftCreate, ListingPage, ListingQuery, ListingRead
+from app.services.buyer import match_listing
 from app.services.listing_lifecycle import InvalidListingTransition, transition_listing
 from app.services.listings import get_active_listing, listing_read_model, search_listings
 from app.services.moderation import DeterministicDevelopmentModeration
@@ -142,6 +143,8 @@ async def submit_listing(
             {"provider": decision.provider},
         )
     )
+    if decision.approved:
+        await match_listing(session, listing)
     await session.commit()
     return listing_read_model(listing)
 
