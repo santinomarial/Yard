@@ -3,7 +3,7 @@ set -euo pipefail
 
 project="ios/Yard/Yard.xcodeproj"
 scheme="Yard"
-destination="platform=iOS Simulator,name=iPhone 16 Pro,OS=latest"
+destination="platform=iOS Simulator,name=iPhone 17 Pro,OS=latest"
 
 xcodebuild \
   -project "$project" \
