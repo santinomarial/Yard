@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build backend image
+        run: docker compose build backend
+      - name: Formatting
+        run: docker compose run --rm --no-deps backend ruff format --check .
+      - name: Lint
+        run: docker compose run --rm --no-deps backend ruff check .
+      - name: Type check
+        run: docker compose run --rm --no-deps backend mypy app
+      - name: Unit and API tests
+        run: docker compose run --rm --no-deps backend python -m pytest -q
+      - name: Start integration dependencies
+        run: docker compose up -d postgres redis minio minio-init
+      - name: Validate migrations
+        run: |
+          docker compose run --rm backend alembic upgrade head
+          docker compose run --rm backend alembic downgrade base
+          docker compose run --rm backend alembic upgrade head
+      - name: PostgreSQL integration and race tests
+        run: make integration-test
+      - name: Dependency and service logs on failure
+        if: failure()
+        run: docker compose logs --no-color --tail=200
+
+  admin:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: admin/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.4.app
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: xcodegen generate --spec ios/Yard/project.yml
+      - name: Build and test
+        run: scripts/ci-ios.sh
