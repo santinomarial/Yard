@@ -56,6 +56,6 @@
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>YARD_API_BASE_URL</key>
-	<string>http://localhost:8000</string>
+	<string>$(YARD_API_BASE_URL)</string>
 </dict>
 </plist>

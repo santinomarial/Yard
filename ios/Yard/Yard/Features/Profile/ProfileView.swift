@@ -91,8 +91,17 @@ struct ProfileView: View {
                 NavigationLink("Prohibited items policy") {
                     PolicyView.prohibitedItems
                 }
+                NavigationLink("Community Guidelines") {
+                    PolicyView.communityGuidelines
+                }
+                NavigationLink("Terms of Service") {
+                    PolicyView.terms
+                }
                 NavigationLink("Privacy") {
                     PolicyView.privacy
+                }
+                NavigationLink("About Yard") {
+                    PolicyView.about
                 }
                 Link("Contact support", destination: URL(string: "mailto:support@yard.market")!)
             }
@@ -224,5 +233,20 @@ struct PolicyView: View {
     static let privacy = PolicyView(
         title: "Privacy",
         bodyText: "Yard uses your Apple identity to secure your account and a Harvard email solely to confirm access to the Harvard community. Public listings show a coarse pickup area, never an exact address. Yard does not require continuous location access. You can delete your account from Profile; sign-in and Harvard email data are removed while pseudonymized safety and transaction records may be retained."
+    )
+
+    static let communityGuidelines = PolicyView(
+        title: "Community Guidelines",
+        bodyText: "Be honest about each item's identity, condition, and price. Communicate respectfully, keep coordination inside Yard, and meet only in safe public areas. Never pressure another member to share a room number, home address, financial credential, or unnecessary personal information. Honor reservations and agreed pickup times. Report unsafe conduct, suspected fraud, harassment, prohibited items, or misleading listings. Yard may remove content or restrict accounts to protect the community."
+    )
+
+    static let terms = PolicyView(
+        title: "Terms of Service",
+        bodyText: "You must be eligible for Yard and use accurate account and listing information. Yard provides software for members to arrange local exchanges; Yard is not a party to an exchange, does not process payment, and does not guarantee an item or member. You are responsible for obeying applicable laws, inspecting items, choosing a safe public meetup, and complying with the prohibited-items policy. Accounts or content may be restricted for safety, fraud, abuse, or policy violations. The complete Terms of Service and effective date are provided in the release documentation and linked from the App Store listing."
+    )
+
+    static let about = PolicyView(
+        title: "About Yard",
+        bodyText: "Yard is an independent community marketplace and is not affiliated with or endorsed by Harvard University. Yard does not use official University logos.\n\nSupport: support@yard.market"
     )
 }

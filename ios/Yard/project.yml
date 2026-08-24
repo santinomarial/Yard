@@ -24,6 +24,7 @@ targets:
           - Resources/Info.plist
     resources:
       - path: Yard/Resources/Assets.xcassets
+      - path: Yard/Resources/PrivacyInfo.xcprivacy
     info:
       path: Yard/Resources/Info.plist
       properties:
@@ -45,7 +46,7 @@ targets:
         NSLocationWhenInUseUsageDescription: Yard uses your location only to estimate travel time to a selected public pickup area.
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
-        YARD_API_BASE_URL: http://localhost:8000
+        YARD_API_BASE_URL: "$(YARD_API_BASE_URL)"
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.santinomarial.yard
@@ -56,7 +57,14 @@ targets:
         CURRENT_PROJECT_VERSION: 1
         TARGETED_DEVICE_FAMILY: "1"
         SUPPORTS_MACCATALYST: false
-        CODE_SIGN_ENTITLEMENTS: Yard/Resources/Yard.entitlements
+        YARD_API_BASE_URL: http://localhost:8000
+      configs:
+        Debug:
+          CODE_SIGN_ENTITLEMENTS: Yard/Resources/Yard.entitlements
+          YARD_API_BASE_URL: http://localhost:8000
+        Release:
+          CODE_SIGN_ENTITLEMENTS: Yard/Resources/Yard-Release.entitlements
+          YARD_API_BASE_URL: https://api.yard.market
     scheme:
       testTargets:
         - YardTests

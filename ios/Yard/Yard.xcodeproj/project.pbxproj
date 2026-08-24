@@ -61,6 +61,7 @@
 		CC5684C5AFB3174E3752517B /* YardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E06C68B411310B9AABF60BE /* YardApp.swift */; };
 		CCB4AA9B1D45FE8F2D388B1D /* KeychainTokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 170358E714668465F28B083A /* KeychainTokenStore.swift */; };
 		CEC2DB2B15037584EEF4563E /* ModelDecodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99AC424DD294154BBB3635F5 /* ModelDecodingTests.swift */; };
+		D02422DFA325F92FB8EDB67C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 892AC6303BFA764D09B87D84 /* PrivacyInfo.xcprivacy */; };
 		D21A9AC38FA5DCE1DC66F1A4 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 212CAC6E2D0F0E1ED408D3F4 /* APIClient.swift */; };
 		D6C2648AD75EFF18A07ABB1C /* SearchViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04C82ED56D70D6736E1EC79B /* SearchViewModelTests.swift */; };
 		DA04014258E810B42DB84E3B /* NotificationRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23309B0EA8AFA5CF1F054E0 /* NotificationRepository.swift */; };
@@ -148,12 +149,14 @@
 		8289968683BFEF8EB03F1320 /* UserSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSession.swift; sourceTree = "<group>"; };
 		835FCCBDEDFBED9C5F92624C /* Listing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Listing.swift; sourceTree = "<group>"; };
 		85E10DD68007B76C4346DB82 /* ListingDraftRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListingDraftRecord.swift; sourceTree = "<group>"; };
+		892AC6303BFA764D09B87D84 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		8972CB58413FC823D2CA9616 /* ChatViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModelTests.swift; sourceTree = "<group>"; };
 		9253B95B687729CDDEE5C29A /* SafetyRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyRepository.swift; sourceTree = "<group>"; };
 		96149D7B4B74C8A28FF7185F /* MarketplaceCacheRecords.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceCacheRecords.swift; sourceTree = "<group>"; };
 		99AC424DD294154BBB3635F5 /* ModelDecodingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelDecodingTests.swift; sourceTree = "<group>"; };
 		9BBB2EECC92F48450EC6C863 /* SearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModel.swift; sourceTree = "<group>"; };
 		A4D3A84DCB17540F6D8760FC /* ListingDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListingDetailView.swift; sourceTree = "<group>"; };
+		AFB7466DE6502E12F080B985 /* Yard-Release.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Yard-Release.entitlements"; sourceTree = "<group>"; };
 		BCA5FD88B87CACB1398CFA01 /* CameraCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureView.swift; sourceTree = "<group>"; };
 		C8CA54412C3F2BD0541402FD /* PickupLiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickupLiveActivityManager.swift; sourceTree = "<group>"; };
 		CA5E9140B5DAD0B598371068 /* NotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
@@ -210,6 +213,8 @@
 			isa = PBXGroup;
 			children = (
 				56E40A440ADCAB402268B4E9 /* Assets.xcassets */,
+				892AC6303BFA764D09B87D84 /* PrivacyInfo.xcprivacy */,
+				AFB7466DE6502E12F080B985 /* Yard-Release.entitlements */,
 				4D0045C21F57D97E1C86E0E4 /* Yard.entitlements */,
 			);
 			path = Resources;
@@ -578,6 +583,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1CBCEC0101D37AA3BD354FBB /* Assets.xcassets in Resources */,
+				D02422DFA325F92FB8EDB67C /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -705,6 +711,7 @@
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				TARGETED_DEVICE_FAMILY = 1;
+				YARD_API_BASE_URL = "http://localhost:8000";
 			};
 			name = Debug;
 		};
@@ -787,7 +794,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Yard/Resources/Yard.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "Yard/Resources/Yard-Release.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = Yard/Resources/Info.plist;
@@ -801,6 +808,7 @@
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				TARGETED_DEVICE_FAMILY = 1;
+				YARD_API_BASE_URL = "https://api.yard.market";
 			};
 			name = Release;
 		};

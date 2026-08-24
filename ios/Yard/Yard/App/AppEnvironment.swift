@@ -43,7 +43,16 @@ final class AppEnvironment {
 
     static func live(bundle: Bundle = .main) -> AppEnvironment {
         let configuredURL = bundle.object(forInfoDictionaryKey: "YARD_API_BASE_URL") as? String
-        let baseURL = configuredURL.flatMap(URL.init(string:)) ?? URL(string: "http://localhost:8000")!
+        let baseURL: URL
+        if let configuredURL, let url = URL(string: configuredURL), !configuredURL.isEmpty {
+            baseURL = url
+        } else {
+            #if DEBUG
+            baseURL = URL(string: "http://localhost:8000")!
+            #else
+            preconditionFailure("A production YARD_API_BASE_URL must be configured")
+            #endif
+        }
         let client = APIClient(baseURL: baseURL)
         let authentication = LiveAuthenticationRepository(client: client)
         let session = UserSession(repository: authentication, tokenStore: KeychainTokenStore())
