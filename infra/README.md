@@ -1,6 +1,6 @@
 # Yard AWS infrastructure
 
-This Terraform describes a small production deployment without creating anything automatically. It uses two availability zones, ECS/Fargate for the API, worker, and admin site, RDS PostgreSQL 16, encrypted ElastiCache Redis, a private S3 asset bucket, Rekognition/SES IAM permissions, CloudWatch logs, and Secrets Manager.
+This Terraform describes a small production deployment without creating anything automatically. It uses two availability zones, ECS/Fargate for the API, worker, and admin site, RDS PostgreSQL 16, encrypted ElastiCache Redis, a private S3 asset bucket behind CloudFront Origin Access Control, Rekognition/SES IAM permissions, CloudWatch logs, and Secrets Manager.
 
 ## Before applying
 
@@ -16,6 +16,6 @@ Terraform state must live in a separately bootstrapped encrypted remote backend 
 
 ## Low-traffic deployment considerations
 
-The defaults prioritize a student-project budget: one small task per service, a `db.t4g.micro` database, a single Redis node, one NAT gateway, and no multi-AZ database. That is suitable for controlled beta traffic, not a high-availability claim. For launch, budget for database Multi-AZ, a second NAT gateway, Redis failover, ECS autoscaling, AWS WAF, CloudFront or signed image delivery, alarms, and tested restore/runbook procedures. Cost varies by region and usage; review the AWS pricing calculator before applying.
+The defaults prioritize a student-project budget: one small task per service, a `db.t4g.micro` database, a single Redis node, one NAT gateway, and no multi-AZ database. That is suitable for controlled beta traffic, not a high-availability claim. For launch, budget for database Multi-AZ, a second NAT gateway, Redis failover, ECS autoscaling, AWS WAF, alarms, and tested restore/runbook procedures. Cost varies by region and usage; review the AWS pricing calculator before applying.
 
-The asset bucket is private. The current API can issue S3 upload URLs, but production image delivery should use short-lived signed reads or a private CloudFront distribution rather than making the bucket public.
+The asset bucket remains private. ECS task-role credentials issue direct signed uploads, while approved-photo URLs use the CloudFront distribution. CloudFront is the only public read path and receives `s3:GetObject` through a source-ARN-constrained bucket policy; rejected or pending images are never returned by the API. The default distribution hostname is sufficient for initial deployment, and an ACM-backed custom asset domain can be added later without changing object keys.
