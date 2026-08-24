@@ -53,7 +53,8 @@ async def development_sign_in(
 ) -> AuthResponse:
     if settings.environment != "development":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
-    subject = "development-admin" if payload.role == "admin" else "development-user"
+    base_subject = "development-admin" if payload.role == "admin" else "development-user"
+    subject = f"{base_subject}-{payload.fixture_id}" if payload.fixture_id else base_subject
     identity = await session.scalar(select(AppleIdentity).where(AppleIdentity.subject == subject))
     if identity:
         return auth_response(identity.user)

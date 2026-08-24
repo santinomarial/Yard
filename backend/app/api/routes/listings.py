@@ -165,7 +165,7 @@ async def submit_listing(
     listing = await session.scalar(
         select(Listing)
         .where(Listing.id == listing_id, Listing.seller_id == user.id)
-        .with_for_update()
+        .with_for_update(of=Listing)
     )
     if listing is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")

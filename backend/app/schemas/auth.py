@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 class DevelopmentSignInRequest(BaseModel):
     display_name: str = Field(default="Alex Rivers", min_length=1, max_length=80)
     role: Literal["member", "admin"] = "member"
+    fixture_id: str | None = Field(default=None, pattern=r"^[a-z0-9-]{1,40}$")
 
 
 class AppleSignInRequest(BaseModel):

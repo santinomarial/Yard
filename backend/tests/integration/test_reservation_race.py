@@ -109,6 +109,18 @@ async def test_same_idempotency_key_has_one_logical_effect() -> None:
     assert sum(result.endswith(":True") for result in results) == 1
 
 
+async def test_listing_lock_targets_only_listing_table_with_optional_relationships() -> None:
+    listing_id, _ = await setup_inventory()
+
+    async with SessionFactory() as session, session.begin():
+        locked = await session.scalar(
+            select(Listing).where(Listing.id == listing_id).with_for_update(of=Listing)
+        )
+
+    assert locked is not None
+    assert locked.category.name.startswith("Race")
+
+
 async def test_waitlist_promotion_keeps_inventory_from_direct_buyers() -> None:
     listing_id, buyers = await setup_inventory()
     async with SessionFactory() as session:

@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help dev dev-detached stop logs migrate seed test integration-test lint format typecheck admin-check check
+.PHONY: help dev dev-detached stop logs migrate seed test integration-test lint format typecheck admin-check check load-smoke load-benchmark
 
 help:
 	@echo "Yard development commands"
@@ -10,6 +10,8 @@ help:
 	@echo "  make test          Run backend tests"
 	@echo "  make check         Run backend and admin validation"
 	@echo "  make admin-check   Run admin lint, types, tests, and production build"
+	@echo "  make load-smoke    Run all k6 reliability scenarios once"
+	@echo "  make load-benchmark Run the documented 30-second local baseline"
 
 dev:
 	docker compose up --build
@@ -54,3 +56,9 @@ check:
 	docker compose run --rm --no-deps backend mypy app
 	docker compose run --rm --no-deps backend python -m pytest -q
 	$(MAKE) admin-check
+
+load-smoke:
+	docker run --rm -i -e YARD_LOAD_PROFILE=smoke -e YARD_BASE_URL=http://host.docker.internal:8000 grafana/k6:0.54.0 run - < load/marketplace.js
+
+load-benchmark:
+	docker run --rm -i -e YARD_LOAD_PROFILE=benchmark -e YARD_BASE_URL=http://host.docker.internal:8000 grafana/k6:0.54.0 run - < load/marketplace.js

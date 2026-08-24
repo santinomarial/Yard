@@ -50,6 +50,21 @@ async def test_development_sign_in_and_email_verification(client: AsyncClient) -
     assert reused.json()["error"]["code"] == "code_expired"
 
 
+async def test_development_fixture_ids_create_distinct_local_users(client: AsyncClient) -> None:
+    first = await client.post(
+        "/api/v1/auth/development",
+        json={"display_name": "Load Buyer One", "fixture_id": "load-buyer-1"},
+    )
+    second = await client.post(
+        "/api/v1/auth/development",
+        json={"display_name": "Load Buyer Two", "fixture_id": "load-buyer-2"},
+    )
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()["user"]["id"] != second.json()["user"]["id"]
+
+
 async def test_rejects_non_harvard_domain(client: AsyncClient) -> None:
     sign_in = await client.post("/api/v1/auth/development", json={})
     token = sign_in.json()["access_token"]
