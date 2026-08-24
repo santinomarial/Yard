@@ -1,4 +1,11 @@
+import uuid
+from datetime import UTC, datetime, timedelta
+
 from httpx import AsyncClient
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models import Listing, Reservation, ReservationStatus, User
 
 
 async def test_health(client: AsyncClient) -> None:
@@ -24,6 +31,46 @@ async def test_listing_search_excludes_unavailable_inventory(client: AsyncClient
     assert response.status_code == 200
     assert payload["total"] == 1
     assert payload["items"][0]["title"] == 'Dell 27" Monitor'
+
+
+async def test_listing_exposes_privacy_safe_seller_trust_signals(
+    client: AsyncClient, seeded_session: AsyncSession
+) -> None:
+    listing = await seeded_session.scalar(
+        select(Listing).where(Listing.title == 'Dell 27" Monitor')
+    )
+    assert listing is not None
+    joined = datetime.now(UTC) - timedelta(days=200)
+    seller = User(
+        id=listing.seller_id,
+        display_name="Maya Chen",
+        harvard_email="maya@harvard.edu",
+        email_verified_at=joined,
+        created_at=joined,
+    )
+    buyer = User(display_name="Past Buyer", email_verified_at=datetime.now(UTC))
+    seeded_session.add_all([seller, buyer])
+    await seeded_session.flush()
+    seeded_session.add(
+        Reservation(
+            listing_id=listing.id,
+            buyer_id=buyer.id,
+            seller_id=seller.id,
+            status=ReservationStatus.COMPLETED,
+            idempotency_key=f"completed-{uuid.uuid4()}",
+            expires_at=datetime.now(UTC),
+            completed_at=datetime.now(UTC),
+        )
+    )
+    await seeded_session.commit()
+
+    response = await client.get("/api/v1/listings", params={"query": "monitor"})
+    trust = response.json()["items"][0]["seller"]
+
+    assert trust["display_name"] == "Maya Chen"
+    assert trust["harvard_email_verified"] is True
+    assert trust["completed_exchanges"] == 1
+    assert "harvard_email" not in trust
 
 
 async def test_listing_filters_compose(client: AsyncClient) -> None:

@@ -9,7 +9,9 @@ from app.core.config import get_settings
 from app.models.category import Category
 from app.models.listing import Listing, ListingStatus
 from app.models.listing_image import ListingImage, ListingImageStatus
-from app.schemas.listing import ListingPage, ListingQuery, ListingRead
+from app.models.reservation import Reservation, ReservationStatus
+from app.models.user import User
+from app.schemas.listing import ListingPage, ListingQuery, ListingRead, SellerTrustRead
 from app.schemas.listing_image import ListingImageRead
 from app.services.embeddings import local_embedding, vector_literal
 
@@ -57,6 +59,49 @@ def listing_read_model(listing: Listing) -> ListingRead:
         view_count=listing.view_count,
         save_count=listing.save_count,
     )
+
+
+async def attach_seller_trust(
+    session: AsyncSession, listings: list[ListingRead]
+) -> list[ListingRead]:
+    seller_ids = {listing.seller_id for listing in listings}
+    if not seller_ids:
+        return listings
+    users = list(
+        (
+            await session.scalars(
+                select(User).where(
+                    User.id.in_(seller_ids),
+                    User.deleted_at.is_(None),
+                    User.suspended_at.is_(None),
+                )
+            )
+        ).all()
+    )
+    completed_rows = (
+        await session.execute(
+            select(Reservation.seller_id, func.count(Reservation.id))
+            .where(
+                Reservation.seller_id.in_(seller_ids),
+                Reservation.status == ReservationStatus.COMPLETED,
+            )
+            .group_by(Reservation.seller_id)
+        )
+    )
+    completed: dict[uuid.UUID, int] = {
+        seller_id: int(count) for seller_id, count in completed_rows.all()
+    }
+    users_by_id = {user.id: user for user in users}
+    for listing in listings:
+        seller = users_by_id.get(listing.seller_id)
+        if seller:
+            listing.seller = SellerTrustRead(
+                display_name=seller.display_name,
+                harvard_email_verified=seller.email_verified_at is not None,
+                member_since=seller.created_at,
+                completed_exchanges=int(completed.get(seller.id, 0)),
+            )
+    return listings
 
 
 def _apply_filters(
@@ -163,8 +208,10 @@ async def search_listings(session: AsyncSession, query: ListingQuery) -> Listing
         filtered = filtered.order_by(Listing.published_at.desc())
 
     rows = await session.scalars(filtered.limit(query.limit).offset(query.offset))
+    items = [listing_read_model(item) for item in rows.unique().all()]
+    await attach_seller_trust(session, items)
     return ListingPage(
-        items=[listing_read_model(item) for item in rows.unique().all()],
+        items=items,
         total=total,
         limit=query.limit,
         offset=query.offset,
@@ -176,4 +223,8 @@ async def get_active_listing(session: AsyncSession, listing_id: uuid.UUID) -> Li
         Listing.id == listing_id, Listing.status == ListingStatus.ACTIVE
     )
     listing = await session.scalar(statement)
-    return listing_read_model(listing) if listing else None
+    if listing is None:
+        return None
+    result = listing_read_model(listing)
+    await attach_seller_trust(session, [result])
+    return result

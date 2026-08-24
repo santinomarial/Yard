@@ -17,7 +17,7 @@ from app.schemas.buyer import (
 from app.schemas.listing import ListingRead
 from app.services.analytics import record_event
 from app.services.buyer import match_intent
-from app.services.listings import listing_read_model
+from app.services.listings import attach_seller_trust, listing_read_model
 from app.services.recommendations import recommend_for_user
 
 router = APIRouter()
@@ -33,7 +33,8 @@ async def saved_listings(
         .where(SavedListing.user_id == user.id, Listing.status == ListingStatus.ACTIVE)
         .order_by(SavedListing.created_at.desc())
     )
-    return [listing_read_model(item) for item in rows.unique().all()]
+    listings = [listing_read_model(item) for item in rows.unique().all()]
+    return await attach_seller_trust(session, listings)
 
 
 @router.put("/saved/{listing_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -131,7 +132,7 @@ async def intent_matches(
             .order_by(ListingMatch.score.desc())
         )
     ).all()
-    return [
+    results = [
         ListingMatchRead(
             id=match.id,
             score=match.score,
@@ -140,6 +141,8 @@ async def intent_matches(
         )
         for match, listing in pairs
     ]
+    await attach_seller_trust(session, [item.listing for item in results])
+    return results
 
 
 @router.get("/recommendations", response_model=list[RecommendationRead])
@@ -149,7 +152,7 @@ async def recommendations(
     session: AsyncSession = Depends(get_session),
 ) -> list[RecommendationRead]:
     items = await recommend_for_user(session, user.id, max(1, min(limit, 50)))
-    return [
+    results = [
         RecommendationRead(
             score=item.score,
             reasons=item.reasons,
@@ -157,3 +160,5 @@ async def recommendations(
         )
         for item in items
     ]
+    await attach_seller_trust(session, [item.listing for item in results])
+    return results

@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import select
 
 from app.core.database import SessionFactory
-from app.models import Category, Listing, ListingCondition, ListingStatus
+from app.models import Category, Listing, ListingCondition, ListingStatus, User
 from app.services.embeddings import refresh_listing_embeddings
 
 NAMESPACE = uuid.UUID("d6267f90-d450-4f75-aabc-40eb9f34728e")
@@ -78,6 +78,20 @@ async def seed() -> None:
 
         now = datetime.now(UTC)
         seller_ids = [stable_id("seller:maya"), stable_id("seller:theo"), stable_id("seller:alex")]
+        seller_names = ["Maya Chen", "Theo Brooks", "Alex Rivera"]
+        for seller_id, display_name in zip(seller_ids, seller_names, strict=True):
+            if await session.get(User, seller_id) is None:
+                session.add(
+                    User(
+                        id=seller_id,
+                        display_name=display_name,
+                        harvard_email=f"{display_name.split()[0].lower()}@harvard.edu",
+                        email_verified_at=now - timedelta(days=180),
+                        terms_accepted_at=now - timedelta(days=180),
+                        created_at=now - timedelta(days=180),
+                    )
+                )
+        await session.flush()
         for index, (title, price, category_slug, subcategory_name, zone, condition) in enumerate(
             LISTINGS
         ):

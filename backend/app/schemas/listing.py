@@ -7,6 +7,13 @@ from app.models.listing import ListingCondition, ListingStatus
 from app.schemas.listing_image import ListingImageRead
 
 
+class SellerTrustRead(BaseModel):
+    display_name: str
+    harvard_email_verified: bool
+    member_since: datetime
+    completed_exchanges: int
+
+
 class ListingRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -28,6 +35,7 @@ class ListingRead(BaseModel):
     published_at: datetime | None
     view_count: int
     save_count: int
+    seller: SellerTrustRead | None = None
 
 
 class ListingPage(BaseModel):

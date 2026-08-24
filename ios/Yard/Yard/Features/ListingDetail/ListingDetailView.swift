@@ -14,6 +14,8 @@ struct ListingDetailView: View {
     @State private var showsWaitlistPrompt = false
     @State private var reservationKey = UUID().uuidString
     @State private var reportTarget: ReportTargetReference?
+    @State private var showsBlockConfirmation = false
+    @State private var isSellerBlocked = false
 
     var body: some View {
         ScrollView {
@@ -28,6 +30,27 @@ struct ListingDetailView: View {
                         .foregroundStyle(listing.isFree ? YardTheme.Colors.crimson : .primary)
                     Text(listing.title)
                         .font(.title2.weight(.semibold))
+                }
+
+                if let seller = listing.seller {
+                    VStack(alignment: .leading, spacing: YardTheme.Spacing.small) {
+                        Text("Seller").font(.headline)
+                        Text(seller.displayName).font(.body.weight(.semibold))
+                        if seller.harvardEmailVerified {
+                            Label("Harvard email verified", systemImage: "checkmark.seal.fill")
+                                .foregroundStyle(.green)
+                        }
+                        Label(
+                            "\(seller.completedExchanges) completed \(seller.completedExchanges == 1 ? "exchange" : "exchanges")",
+                            systemImage: "arrow.triangle.2.circlepath.circle"
+                        )
+                        Label(
+                            "Member since \(seller.memberSince.formatted(.dateTime.month(.wide).year()))",
+                            systemImage: "calendar"
+                        )
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                 }
 
                 HStack(spacing: YardTheme.Spacing.medium) {
@@ -57,13 +80,15 @@ struct ListingDetailView: View {
 
                 Button("Message seller") { Task { await openConversation() } }
                     .buttonStyle(YardPrimaryButtonStyle())
-                    .disabled(isPerformingTransaction)
+                    .disabled(isPerformingTransaction || isSellerBlocked)
                     .accessibilityIdentifier("messageSellerButton")
 
                 Button("Reserve item") { Task { await reserve() } }
                     .buttonStyle(.bordered)
                     .frame(maxWidth: .infinity)
-                    .disabled(isPerformingTransaction || listing.status != .active)
+                    .disabled(
+                        isPerformingTransaction || isSellerBlocked || listing.status != .active
+                    )
                     .accessibilityIdentifier("reserveListingButton")
             }
             .padding(YardTheme.Spacing.medium)
@@ -90,6 +115,16 @@ struct ListingDetailView: View {
         } message: {
             Text("Join the waitlist and Yard can offer it to you if the current reservation expires or is cancelled.")
         }
+        .confirmationDialog(
+            "Block this seller?",
+            isPresented: $showsBlockConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Block seller", role: .destructive) { Task { await blockSeller() } }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Neither of you will be able to start or continue direct marketplace interaction.")
+        }
         .task { await loadSavedState() }
         .alert("Yard", isPresented: Binding(
             get: { actionMessage != nil },
@@ -111,6 +146,16 @@ struct ListingDetailView: View {
                         reportTarget = ReportTargetReference(
                             type: .listing, targetID: listing.id, title: listing.title
                         )
+                    }
+                    Button("Report seller", role: .destructive) {
+                        reportTarget = ReportTargetReference(
+                            type: .user,
+                            targetID: listing.sellerID,
+                            title: listing.seller?.displayName ?? "Seller"
+                        )
+                    }
+                    Button("Block seller", role: .destructive) {
+                        showsBlockConfirmation = true
                     }
                 }
             }
@@ -211,6 +256,17 @@ struct ListingDetailView: View {
             actionMessage = error.transactionMessage
         }
         isPerformingTransaction = false
+    }
+
+    private func blockSeller() async {
+        guard let token = environment.session.accessToken else { return }
+        do {
+            try await environment.safety.block(userID: listing.sellerID, accessToken: token)
+            isSellerBlocked = true
+            actionMessage = "Seller blocked. Direct interaction is now disabled."
+        } catch {
+            actionMessage = error.transactionMessage
+        }
     }
 
     private func detailPill(_ text: String, symbol: String) -> some View {

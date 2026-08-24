@@ -58,11 +58,19 @@ struct Listing: Codable, Identifiable, Hashable, Sendable {
     let publishedAt: Date?
     let viewCount: Int
     let saveCount: Int
+    var seller: SellerTrust? = nil
 
     var formattedPrice: String {
         guard !isFree else { return "Free" }
         return (Double(priceCents) / 100).formatted(.currency(code: "USD").precision(.fractionLength(0)))
     }
+}
+
+struct SellerTrust: Codable, Hashable, Sendable {
+    let displayName: String
+    let harvardEmailVerified: Bool
+    let memberSince: Date
+    let completedExchanges: Int
 }
 
 struct ListingPage: Codable, Sendable {

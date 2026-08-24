@@ -23,7 +23,13 @@ struct ModelDecodingTests {
           "image_url": null,
           "published_at": "2026-08-24T05:50:17Z",
           "view_count": 3,
-          "save_count": 2
+          "save_count": 2,
+          "seller": {
+            "display_name": "Maya Chen",
+            "harvard_email_verified": true,
+            "member_since": "2026-01-12T05:50:17Z",
+            "completed_exchanges": 14
+          }
         }
         """#.data(using: .utf8)!
 
@@ -32,6 +38,8 @@ struct ModelDecodingTests {
         #expect(listing.title == "Dell 27-inch Monitor")
         #expect(listing.formattedPrice == "$85")
         #expect(listing.condition == .good)
+        #expect(listing.seller?.displayName == "Maya Chen")
+        #expect(listing.seller?.completedExchanges == 14)
     }
 
     @Test
@@ -59,4 +67,3 @@ struct ModelDecodingTests {
         #expect(listing.formattedPrice == "Free")
     }
 }
-
