@@ -1,14 +1,149 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.database import get_session
-from app.models.listing import ListingCondition
-from app.schemas.listing import ListingPage, ListingQuery, ListingRead
-from app.services.listings import get_active_listing, search_listings
+from app.core.security import CurrentUser
+from app.models.category import Category
+from app.models.listing import Listing, ListingCondition, ListingStatus
+from app.models.marketplace_event import ListingEvent, ModerationResult
+from app.schemas.listing import ListingDraftCreate, ListingPage, ListingQuery, ListingRead
+from app.services.listing_lifecycle import InvalidListingTransition, transition_listing
+from app.services.listings import get_active_listing, listing_read_model, search_listings
+from app.services.moderation import DeterministicDevelopmentModeration
 
 router = APIRouter()
+
+
+def require_verified(user: CurrentUser) -> None:
+    if user.email_verified_at is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "harvard_email_required",
+                "message": "Verify a Harvard email before using the marketplace.",
+            },
+        )
+
+
+@router.post("", response_model=ListingRead, status_code=status.HTTP_201_CREATED)
+async def create_listing_draft(
+    payload: ListingDraftCreate,
+    user: CurrentUser,
+    session: AsyncSession = Depends(get_session),
+) -> ListingRead:
+    require_verified(user)
+    if payload.is_free != (payload.price_cents == 0):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"code": "invalid_price", "message": "Free listings must have a zero price."},
+        )
+    category = await session.get(Category, payload.category_id)
+    subcategory = (
+        await session.get(Category, payload.subcategory_id) if payload.subcategory_id else None
+    )
+    if category is None or category.parent_id is not None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"code": "invalid_category", "message": "Choose an active category."},
+        )
+    if subcategory and subcategory.parent_id != category.id:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"code": "invalid_subcategory", "message": "Choose a matching subcategory."},
+        )
+    listing = Listing(
+        seller_id=user.id,
+        title=payload.title,
+        description=payload.description,
+        category=category,
+        subcategory=subcategory,
+        price_cents=payload.price_cents,
+        is_free=payload.is_free,
+        condition=payload.condition,
+        status=ListingStatus.DRAFT,
+        pickup_zone=payload.pickup_zone,
+    )
+    session.add(listing)
+    await session.flush()
+    session.add(
+        ListingEvent(
+            listing_id=listing.id,
+            actor_id=user.id,
+            event_type="ListingCreated",
+            to_status=ListingStatus.DRAFT.value,
+        )
+    )
+    await session.commit()
+    return listing_read_model(listing)
+
+
+@router.get("/mine", response_model=list[ListingRead])
+async def my_listings(
+    user: CurrentUser, session: AsyncSession = Depends(get_session)
+) -> list[ListingRead]:
+    statement = (
+        select(Listing)
+        .where(Listing.seller_id == user.id)
+        .options(selectinload(Listing.category), selectinload(Listing.subcategory))
+        .order_by(Listing.updated_at.desc())
+    )
+    items = await session.scalars(statement)
+    return [listing_read_model(item) for item in items.unique().all()]
+
+
+@router.post("/{listing_id}/submit", response_model=ListingRead)
+async def submit_listing(
+    listing_id: uuid.UUID,
+    user: CurrentUser,
+    session: AsyncSession = Depends(get_session),
+) -> ListingRead:
+    require_verified(user)
+    listing = await session.scalar(
+        select(Listing)
+        .where(Listing.id == listing_id, Listing.seller_id == user.id)
+        .with_for_update()
+    )
+    if listing is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+    try:
+        session.add(
+            transition_listing(
+                listing,
+                ListingStatus.PENDING_MODERATION,
+                user.id,
+                "ListingSubmittedForModeration",
+            )
+        )
+    except InvalidListingTransition as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"code": "invalid_listing_state", "message": str(error)},
+        ) from None
+    decision = await DeterministicDevelopmentModeration().moderate(listing)
+    session.add(
+        ModerationResult(
+            listing_id=listing.id,
+            provider=decision.provider,
+            outcome="approved" if decision.approved else "rejected",
+            reasons=decision.reasons,
+        )
+    )
+    target = ListingStatus.ACTIVE if decision.approved else ListingStatus.REJECTED
+    session.add(
+        transition_listing(
+            listing,
+            target,
+            user.id,
+            "ListingPublished" if decision.approved else "ListingRejected",
+            {"provider": decision.provider},
+        )
+    )
+    await session.commit()
+    return listing_read_model(listing)
 
 
 @router.get("", response_model=ListingPage)

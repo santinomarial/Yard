@@ -8,7 +8,7 @@ from app.models.listing import Listing, ListingStatus
 from app.schemas.listing import ListingPage, ListingQuery, ListingRead
 
 
-def _read_model(listing: Listing) -> ListingRead:
+def listing_read_model(listing: Listing) -> ListingRead:
     return ListingRead(
         id=listing.id,
         seller_id=listing.seller_id,
@@ -70,7 +70,7 @@ async def search_listings(session: AsyncSession, query: ListingQuery) -> Listing
 
     rows = await session.scalars(filtered.limit(query.limit).offset(query.offset))
     return ListingPage(
-        items=[_read_model(item) for item in rows.unique().all()],
+        items=[listing_read_model(item) for item in rows.unique().all()],
         total=total,
         limit=query.limit,
         offset=query.offset,
@@ -82,4 +82,4 @@ async def get_active_listing(session: AsyncSession, listing_id: uuid.UUID) -> Li
         Listing.id == listing_id, Listing.status == ListingStatus.ACTIVE
     )
     listing = await session.scalar(statement)
-    return _read_model(listing) if listing else None
+    return listing_read_model(listing) if listing else None

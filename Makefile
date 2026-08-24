@@ -29,7 +29,7 @@ seed:
 	docker compose run --rm backend python -m scripts.seed
 
 test:
-	docker compose run --rm --no-deps backend pytest -q
+	docker compose run --rm --no-deps backend python -m pytest -q
 
 lint:
 	docker compose run --rm --no-deps backend ruff check .
@@ -45,5 +45,4 @@ check:
 	docker compose run --rm --no-deps backend ruff check .
 	docker compose run --rm --no-deps backend ruff format --check .
 	docker compose run --rm --no-deps backend mypy app
-	docker compose run --rm --no-deps backend pytest -q
-
+	docker compose run --rm --no-deps backend python -m pytest -q

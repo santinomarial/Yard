@@ -46,3 +46,14 @@ class ListingQuery(BaseModel):
     sort: str = "newest"
     limit: int = Field(default=30, ge=1, le=100)
     offset: int = Field(default=0, ge=0)
+
+
+class ListingDraftCreate(BaseModel):
+    title: str = Field(min_length=3, max_length=140)
+    description: str = Field(min_length=3, max_length=5_000)
+    category_id: uuid.UUID
+    subcategory_id: uuid.UUID | None = None
+    price_cents: int = Field(ge=0, le=10_000_000)
+    is_free: bool = False
+    condition: ListingCondition
+    pickup_zone: str = Field(min_length=2, max_length=100)
