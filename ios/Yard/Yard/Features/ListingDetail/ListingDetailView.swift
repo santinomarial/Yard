@@ -6,6 +6,11 @@ struct ListingDetailView: View {
     @State private var isSaved = false
     @State private var isUpdatingSavedState = false
     @State private var actionMessage: String?
+    @State private var conversation: Conversation?
+    @State private var reservation: Reservation?
+    @State private var isPerformingTransaction = false
+    @State private var showsWaitlistPrompt = false
+    @State private var reservationKey = UUID().uuidString
 
     var body: some View {
         ScrollView {
@@ -47,21 +52,38 @@ struct ListingDetailView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                Button("Message seller") {}
+                Button("Message seller") { Task { await openConversation() } }
                     .buttonStyle(YardPrimaryButtonStyle())
+                    .disabled(isPerformingTransaction)
                     .accessibilityIdentifier("messageSellerButton")
 
-                Button("Reserve item") {}
+                Button("Reserve item") { Task { await reserve() } }
                     .buttonStyle(.bordered)
                     .frame(maxWidth: .infinity)
-                    .disabled(true)
-                    .accessibilityHint("Reservations will become available after account verification.")
+                    .disabled(isPerformingTransaction || listing.status != .active)
+                    .accessibilityIdentifier("reserveListingButton")
             }
             .padding(YardTheme.Spacing.medium)
         }
         .background(YardTheme.Colors.background)
         .navigationTitle("Listing")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(item: $conversation) { conversation in
+            ChatView(conversation: conversation, listingTitle: listing.title)
+        }
+        .sheet(item: $reservation) { reservation in
+            ReservationConfirmationView(reservation: reservation, listing: listing)
+        }
+        .confirmationDialog(
+            "This item was just reserved",
+            isPresented: $showsWaitlistPrompt,
+            titleVisibility: .visible
+        ) {
+            Button("Join waitlist") { Task { await joinWaitlist() } }
+            Button("Not now", role: .cancel) {}
+        } message: {
+            Text("Join the waitlist and Yard can offer it to you if the current reservation expires or is cancelled.")
+        }
         .task { await loadSavedState() }
         .alert("Yard", isPresented: Binding(
             get: { actionMessage != nil },
@@ -106,6 +128,52 @@ struct ListingDetailView: View {
             actionMessage = error.buyerMessage
         }
         isUpdatingSavedState = false
+    }
+
+    private func openConversation() async {
+        guard let token = environment.session.accessToken else { return }
+        isPerformingTransaction = true
+        do {
+            conversation = try await environment.transactions.conversation(
+                listingID: listing.id, accessToken: token
+            )
+        } catch {
+            actionMessage = error.transactionMessage
+        }
+        isPerformingTransaction = false
+    }
+
+    private func reserve() async {
+        guard let token = environment.session.accessToken else { return }
+        isPerformingTransaction = true
+        do {
+            reservation = try await environment.transactions.reserve(
+                listingID: listing.id,
+                idempotencyKey: reservationKey,
+                accessToken: token
+            )
+        } catch {
+            if error.transactionCode == "listing_already_reserved" {
+                showsWaitlistPrompt = true
+            } else {
+                actionMessage = error.transactionMessage
+            }
+        }
+        isPerformingTransaction = false
+    }
+
+    private func joinWaitlist() async {
+        guard let token = environment.session.accessToken else { return }
+        isPerformingTransaction = true
+        do {
+            _ = try await environment.transactions.joinWaitlist(
+                listingID: listing.id, accessToken: token
+            )
+            actionMessage = "You joined the waitlist. Yard will notify you if this item becomes available."
+        } catch {
+            actionMessage = error.transactionMessage
+        }
+        isPerformingTransaction = false
     }
 
     private func detailPill(_ text: String, symbol: String) -> some View {

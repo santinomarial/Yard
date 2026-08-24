@@ -16,30 +16,30 @@ actor LiveBuyerRepository: BuyerRepository {
     }
 
     func savedListings(accessToken: String) async throws -> [Listing] {
-        try await client.request("GET", path: "api/v1/buyer/saved", accessToken: accessToken)
+        try await client.request("GET", path: "api/v1/saved", accessToken: accessToken)
     }
 
     func setSaved(_ saved: Bool, listingID: UUID, accessToken: String) async throws {
         try await client.requestVoid(
             saved ? "PUT" : "DELETE",
-            path: "api/v1/buyer/saved/\(listingID)",
+            path: "api/v1/saved/\(listingID)",
             accessToken: accessToken
         )
     }
 
     func intents(accessToken: String) async throws -> [BuyingIntent] {
-        try await client.request("GET", path: "api/v1/buyer/intents", accessToken: accessToken)
+        try await client.request("GET", path: "api/v1/intents", accessToken: accessToken)
     }
 
     func createIntent(_ draft: BuyingIntentDraft, accessToken: String) async throws -> BuyingIntent {
         try await client.request(
-            "POST", path: "api/v1/buyer/intents", body: draft, accessToken: accessToken
+            "POST", path: "api/v1/intents", body: draft, accessToken: accessToken
         )
     }
 
     func matches(intentID: UUID, accessToken: String) async throws -> [ListingMatch] {
         try await client.request(
-            "GET", path: "api/v1/buyer/intents/\(intentID)/matches", accessToken: accessToken
+            "GET", path: "api/v1/intents/\(intentID)/matches", accessToken: accessToken
         )
     }
 }

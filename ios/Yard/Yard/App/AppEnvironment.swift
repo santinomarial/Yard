@@ -7,6 +7,7 @@ final class AppEnvironment {
     let marketplace: any MarketplaceRepository
     let selling: any SellingRepository
     let buyer: any BuyerRepository
+    let transactions: any TransactionRepository
     let session: UserSession
     let apiClient: APIClient
 
@@ -14,12 +15,14 @@ final class AppEnvironment {
         marketplace: any MarketplaceRepository,
         selling: (any SellingRepository)? = nil,
         buyer: (any BuyerRepository)? = nil,
+        transactions: (any TransactionRepository)? = nil,
         session: UserSession? = nil,
         apiClient: APIClient? = nil
     ) {
         self.marketplace = marketplace
         self.selling = selling ?? PreviewSellingRepository()
         self.buyer = buyer ?? PreviewBuyerRepository()
+        self.transactions = transactions ?? PreviewTransactionRepository()
         let previewClient = apiClient ?? APIClient(baseURL: URL(string: "http://localhost:8000")!)
         self.apiClient = previewClient
         self.session = session ?? UserSession(
@@ -39,6 +42,7 @@ final class AppEnvironment {
             marketplace: LiveMarketplaceRepository(client: client),
             selling: LiveSellingRepository(client: client),
             buyer: LiveBuyerRepository(client: client),
+            transactions: LiveTransactionRepository(client: client),
             session: session,
             apiClient: client
         )
