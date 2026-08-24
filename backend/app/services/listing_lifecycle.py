@@ -22,7 +22,7 @@ LEGAL_TRANSITIONS: dict[ListingStatus, frozenset[ListingStatus]] = {
     ),
     ListingStatus.SOLD: frozenset({ListingStatus.ARCHIVED}),
     ListingStatus.REJECTED: frozenset({ListingStatus.DRAFT, ListingStatus.ARCHIVED}),
-    ListingStatus.ARCHIVED: frozenset(),
+    ListingStatus.ARCHIVED: frozenset({ListingStatus.ACTIVE}),
     ListingStatus.REMOVED: frozenset(),
 }
 

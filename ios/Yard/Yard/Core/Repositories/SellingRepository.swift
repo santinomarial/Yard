@@ -2,6 +2,16 @@ import Foundation
 
 protocol SellingRepository: Sendable {
     func myListings(accessToken: String) async throws -> [Listing]
+    func update(
+        listingID: UUID,
+        priceCents: Int,
+        isFree: Bool,
+        condition: ListingCondition,
+        pickupZone: String,
+        accessToken: String
+    ) async throws -> Listing
+    func archive(listingID: UUID, accessToken: String) async throws -> Listing
+    func relist(listingID: UUID, accessToken: String) async throws -> Listing
     func publish(
         draft: ListingDraftPayload,
         photos: [PreparedListingPhoto],
@@ -19,6 +29,43 @@ actor LiveSellingRepository: SellingRepository {
 
     func myListings(accessToken: String) async throws -> [Listing] {
         try await client.request("GET", path: "api/v1/listings/mine", accessToken: accessToken)
+    }
+
+    func update(
+        listingID: UUID,
+        priceCents: Int,
+        isFree: Bool,
+        condition: ListingCondition,
+        pickupZone: String,
+        accessToken: String
+    ) async throws -> Listing {
+        try await client.request(
+            "PATCH",
+            path: "api/v1/listings/\(listingID)",
+            body: SafeListingUpdate(
+                priceCents: priceCents,
+                isFree: isFree,
+                condition: condition,
+                pickupZone: pickupZone
+            ),
+            accessToken: accessToken
+        )
+    }
+
+    func archive(listingID: UUID, accessToken: String) async throws -> Listing {
+        try await client.request(
+            "POST",
+            path: "api/v1/listings/\(listingID)/archive",
+            accessToken: accessToken
+        )
+    }
+
+    func relist(listingID: UUID, accessToken: String) async throws -> Listing {
+        try await client.request(
+            "POST",
+            path: "api/v1/listings/\(listingID)/relist",
+            accessToken: accessToken
+        )
     }
 
     func publish(
@@ -69,8 +116,32 @@ actor LiveSellingRepository: SellingRepository {
     }
 }
 
+private struct SafeListingUpdate: Encodable {
+    let priceCents: Int
+    let isFree: Bool
+    let condition: ListingCondition
+    let pickupZone: String
+}
+
 actor PreviewSellingRepository: SellingRepository {
     func myListings(accessToken: String) async throws -> [Listing] { Listing.previewListings }
+
+    func update(
+        listingID: UUID,
+        priceCents: Int,
+        isFree: Bool,
+        condition: ListingCondition,
+        pickupZone: String,
+        accessToken: String
+    ) async throws -> Listing { Listing.previewListings[0] }
+
+    func archive(listingID: UUID, accessToken: String) async throws -> Listing {
+        Listing.previewListings[0]
+    }
+
+    func relist(listingID: UUID, accessToken: String) async throws -> Listing {
+        Listing.previewListings[0]
+    }
 
     func publish(
         draft: ListingDraftPayload,

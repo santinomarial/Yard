@@ -15,6 +15,11 @@ final class ProfileViewModel {
         self.conversations = conversations
     }
 
+    func replaceListing(_ listing: Listing) {
+        guard let index = listings.firstIndex(where: { $0.id == listing.id }) else { return }
+        listings[index] = listing
+    }
+
     func load(
         selling: any SellingRepository,
         transactions: any TransactionRepository,

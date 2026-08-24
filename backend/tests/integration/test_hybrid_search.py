@@ -2,6 +2,7 @@ import uuid
 from datetime import UTC, datetime
 
 import pytest
+from sqlalchemy import delete
 
 from app.core.database import SessionFactory
 from app.models import Category, Listing, ListingCondition, ListingStatus
@@ -14,6 +15,9 @@ pytestmark = [pytest.mark.integration, pytest.mark.asyncio(loop_scope="session")
 
 async def test_pgvector_semantic_candidate_retrieves_screen_as_monitor() -> None:
     async with SessionFactory() as session, session.begin():
+        await session.execute(
+            delete(Listing).where(Listing.title == "Portable OLED Monitor")
+        )
         category = Category(
             name=f"Semantic {uuid.uuid4().hex[:8]}",
             slug=f"semantic-{uuid.uuid4().hex}",

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.models.listing import ListingCondition, ListingStatus
 from app.schemas.listing_image import ListingImageRead
@@ -61,3 +61,16 @@ class ListingDraftCreate(BaseModel):
     is_free: bool = False
     condition: ListingCondition
     pickup_zone: str = Field(min_length=2, max_length=100)
+
+
+class ListingSafeUpdate(BaseModel):
+    price_cents: int | None = Field(default=None, ge=0, le=10_000_000)
+    is_free: bool | None = None
+    condition: ListingCondition | None = None
+    pickup_zone: str | None = Field(default=None, min_length=2, max_length=100)
+
+    @model_validator(mode="after")
+    def require_change(self) -> "ListingSafeUpdate":
+        if not self.model_fields_set:
+            raise ValueError("Provide at least one field to update")
+        return self

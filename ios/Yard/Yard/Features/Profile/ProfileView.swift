@@ -22,7 +22,11 @@ struct ProfileView: View {
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(model.listings) { listing in
-                        NavigationLink(value: listing) {
+                        NavigationLink {
+                            SellerListingManagementView(listing: listing) { updated in
+                                model.replaceListing(updated)
+                            }
+                        } label: {
                             HStack {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(listing.title).font(.headline)
@@ -113,7 +117,6 @@ struct ProfileView: View {
             }
         }
         .navigationTitle("Profile")
-        .navigationDestination(for: Listing.self) { ListingDetailView(listing: $0) }
         .task {
             model.restoreCachedConversations(
                 MarketplaceLocalStore.cachedConversations(context: modelContext)

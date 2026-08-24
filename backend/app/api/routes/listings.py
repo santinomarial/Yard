@@ -15,7 +15,13 @@ from app.models.category import Category
 from app.models.listing import Listing, ListingCondition, ListingStatus
 from app.models.listing_image import ListingImage, ListingImageStatus
 from app.models.marketplace_event import ListingEvent, ModerationResult
-from app.schemas.listing import ListingDraftCreate, ListingPage, ListingQuery, ListingRead
+from app.schemas.listing import (
+    ListingDraftCreate,
+    ListingPage,
+    ListingQuery,
+    ListingRead,
+    ListingSafeUpdate,
+)
 from app.schemas.listing_image import (
     ListingImageRead,
     ListingImageUploadRead,
@@ -154,6 +160,133 @@ async def my_listings(
     )
     items = await session.scalars(statement)
     return [listing_read_model(item) for item in items.unique().all()]
+
+
+async def locked_owned_listing(
+    session: AsyncSession, listing_id: uuid.UUID, seller_id: uuid.UUID
+) -> Listing:
+    listing = await session.scalar(
+        select(Listing)
+        .where(Listing.id == listing_id, Listing.seller_id == seller_id)
+        .with_for_update(of=Listing)
+    )
+    if listing is None:
+        raise HTTPException(status_code=404, detail="Not found")
+    return listing
+
+
+@router.patch("/{listing_id}", response_model=ListingRead)
+async def update_listing_safely(
+    listing_id: uuid.UUID,
+    payload: ListingSafeUpdate,
+    user: CurrentUser,
+    session: AsyncSession = Depends(get_session),
+) -> ListingRead:
+    require_verified(user)
+    listing = await locked_owned_listing(session, listing_id, user.id)
+    if listing.status not in {ListingStatus.DRAFT, ListingStatus.REJECTED, ListingStatus.ACTIVE}:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "listing_edit_locked",
+                "message": "This listing cannot be edited in its current state.",
+            },
+        )
+    next_price = payload.price_cents if payload.price_cents is not None else listing.price_cents
+    next_is_free = payload.is_free if payload.is_free is not None else listing.is_free
+    if next_is_free != (next_price == 0):
+        raise HTTPException(
+            status_code=422,
+            detail={"code": "invalid_price", "message": "Free listings must have a zero price."},
+        )
+    changes = payload.model_dump(exclude_unset=True)
+    for field, value in changes.items():
+        setattr(listing, field, value)
+    listing.version = (listing.version or 1) + 1
+    session.add(
+        ListingEvent(
+            listing_id=listing.id,
+            actor_id=user.id,
+            event_type="ListingSafeFieldsUpdated",
+            from_status=listing.status.value,
+            to_status=listing.status.value,
+            event_data={"fields": sorted(changes)},
+        )
+    )
+    if listing.status == ListingStatus.ACTIVE:
+        await match_listing(session, listing)
+    await session.commit()
+    return listing_read_model(listing)
+
+
+@router.post("/{listing_id}/archive", response_model=ListingRead)
+async def archive_listing(
+    listing_id: uuid.UUID,
+    user: CurrentUser,
+    session: AsyncSession = Depends(get_session),
+) -> ListingRead:
+    require_verified(user)
+    listing = await locked_owned_listing(session, listing_id, user.id)
+    if listing.status != ListingStatus.ACTIVE:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "listing_unavailable_locked",
+                "message": "Only an active, unreserved listing can be marked unavailable.",
+            },
+        )
+    session.add(
+        transition_listing(
+            listing,
+            ListingStatus.ARCHIVED,
+            user.id,
+            "SellerMarkedUnavailable",
+        )
+    )
+    await session.commit()
+    return listing_read_model(listing)
+
+
+@router.post("/{listing_id}/relist", response_model=ListingRead)
+async def relist_listing(
+    listing_id: uuid.UUID,
+    user: CurrentUser,
+    session: AsyncSession = Depends(get_session),
+) -> ListingRead:
+    require_verified(user)
+    listing = await locked_owned_listing(session, listing_id, user.id)
+    was_seller_archived = await session.scalar(
+        select(ListingEvent.id).where(
+            ListingEvent.listing_id == listing.id,
+            ListingEvent.event_type == "SellerMarkedUnavailable",
+        )
+    )
+    approved_image = await session.scalar(
+        select(ListingImage.id).where(
+            ListingImage.listing_id == listing.id,
+            ListingImage.status == ListingImageStatus.APPROVED,
+        )
+    )
+    if (
+        listing.status != ListingStatus.ARCHIVED
+        or was_seller_archived is None
+        or approved_image is None
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "listing_cannot_be_relisted",
+                "message": "Only a seller-archived listing with an approved photo can be relisted.",
+            },
+        )
+    session.add(
+        transition_listing(listing, ListingStatus.ACTIVE, user.id, "ListingRelisted")
+    )
+    listing.published_at = datetime.now(UTC)
+    await write_listing_embedding(session, listing)
+    await match_listing(session, listing)
+    await session.commit()
+    return listing_read_model(listing)
 
 
 @router.post("/{listing_id}/submit", response_model=ListingRead)
