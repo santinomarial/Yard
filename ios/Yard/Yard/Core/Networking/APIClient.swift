@@ -32,6 +32,16 @@ actor APIClient {
         _ path: String,
         queryItems: [URLQueryItem] = []
     ) async throws -> Response {
+        try await request("GET", path: path, queryItems: queryItems)
+    }
+
+    func request<Response: Decodable & Sendable, Body: Encodable & Sendable>(
+        _ method: String,
+        path: String,
+        queryItems: [URLQueryItem] = [],
+        body: Body? = Optional<Body>.none,
+        accessToken: String? = nil
+    ) async throws -> Response {
         guard var components = URLComponents(
             url: baseURL.appending(path: path), resolvingAgainstBaseURL: false
         ) else {
@@ -40,10 +50,21 @@ actor APIClient {
         components.queryItems = queryItems.isEmpty ? nil : queryItems
         guard let url = components.url else { throw APIError.invalidURL }
 
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if let accessToken {
+            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        }
+        if let body {
+            request.httpBody = try JSONEncoder.yard.encode(body)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
+
         let data: Data
         let response: URLResponse
         do {
-            (data, response) = try await session.data(from: url)
+            (data, response) = try await session.data(for: request)
         } catch is CancellationError {
             throw CancellationError()
         } catch {
@@ -68,6 +89,25 @@ actor APIClient {
             )
         }
 
+        return try decode(data)
+    }
+
+    func request<Response: Decodable & Sendable>(
+        _ method: String,
+        path: String,
+        queryItems: [URLQueryItem] = [],
+        accessToken: String? = nil
+    ) async throws -> Response {
+        try await request(
+            method,
+            path: path,
+            queryItems: queryItems,
+            body: Optional<EmptyBody>.none,
+            accessToken: accessToken
+        )
+    }
+
+    private func decode<Response: Decodable & Sendable>(_ data: Data) throws -> Response {
         do {
             return try decoder.decode(Response.self, from: data)
         } catch {
@@ -76,11 +116,22 @@ actor APIClient {
     }
 }
 
+private struct EmptyBody: Encodable, Sendable {}
+
 extension JSONDecoder {
     static var yard: JSONDecoder {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .iso8601
         return decoder
+    }
+}
+
+extension JSONEncoder {
+    static var yard: JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        encoder.dateEncodingStrategy = .iso8601
+        return encoder
     }
 }

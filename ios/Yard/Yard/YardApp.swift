@@ -6,10 +6,9 @@ struct YardApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootTabView()
+            AuthenticationGate()
                 .environment(environment)
                 .tint(YardTheme.Colors.crimson)
         }
     }
 }
-
