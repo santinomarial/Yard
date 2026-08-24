@@ -92,7 +92,11 @@ struct ChatView: View {
             get: { safetyMessage != nil },
             set: { if !$0 { safetyMessage = nil } }
         )) { Button("OK", role: .cancel) {} } message: { Text(safetyMessage ?? "") }
-        .task { await load() }
+        .task {
+            await load()
+            connect()
+        }
+        .onDisappear { model.disconnect() }
         .refreshable { await load() }
     }
 
@@ -108,6 +112,15 @@ struct ChatView: View {
     private func send() async {
         guard let token = environment.session.accessToken else { return }
         await model.send(
+            conversationID: conversation.id,
+            using: environment.transactions,
+            accessToken: token
+        )
+    }
+
+    private func connect() {
+        guard let token = environment.session.accessToken else { return }
+        model.connect(
             conversationID: conversation.id,
             using: environment.transactions,
             accessToken: token

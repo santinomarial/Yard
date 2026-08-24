@@ -193,6 +193,17 @@ actor APIClient {
         )
     }
 
+    func webSocketTask(path: String, accessToken: String) throws -> URLSessionWebSocketTask {
+        guard var components = URLComponents(
+            url: baseURL.appending(path: path), resolvingAgainstBaseURL: false
+        ) else { throw APIError.invalidURL }
+        components.scheme = components.scheme == "https" ? "wss" : "ws"
+        guard let url = components.url else { throw APIError.invalidURL }
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        return session.webSocketTask(with: request)
+    }
+
     private func decode<Response: Decodable & Sendable>(_ data: Data) throws -> Response {
         do {
             return try decoder.decode(Response.self, from: data)

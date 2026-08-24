@@ -9,6 +9,7 @@ final class ChatViewModel {
     private(set) var isSending = false
     var draft = ""
     var errorMessage: String?
+    @ObservationIgnored private var streamTask: Task<Void, Never>?
 
     func load(
         conversationID: UUID,
@@ -48,6 +49,37 @@ final class ChatViewModel {
             errorMessage = error.transactionMessage
         }
         isSending = false
+    }
+
+    func connect(
+        conversationID: UUID,
+        using repository: any TransactionRepository,
+        accessToken: String
+    ) {
+        streamTask?.cancel()
+        streamTask = Task { [weak self] in
+            do {
+                let stream = try await repository.messageStream(
+                    conversationID: conversationID, accessToken: accessToken
+                )
+                for try await message in stream {
+                    guard !Task.isCancelled else { return }
+                    if self?.messages.contains(where: { $0.id == message.id }) == false {
+                        self?.messages.append(message)
+                    }
+                }
+            } catch is CancellationError {
+                return
+            } catch {
+                guard !Task.isCancelled else { return }
+                self?.errorMessage = "Live updates paused. Pull to refresh the conversation."
+            }
+        }
+    }
+
+    func disconnect() {
+        streamTask?.cancel()
+        streamTask = nil
     }
 }
 

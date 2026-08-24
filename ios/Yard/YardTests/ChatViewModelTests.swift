@@ -33,6 +33,11 @@ private actor TransactionRepositoryStub: TransactionRepository {
         )
     }
     func markRead(conversationID: UUID, accessToken: String) async throws {}
+    func messageStream(
+        conversationID: UUID, accessToken: String
+    ) async throws -> AsyncThrowingStream<YardMessage, Error> {
+        AsyncThrowingStream { $0.finish() }
+    }
     func pickup(reservationID: UUID, accessToken: String) async throws -> PickupSession { fatalError() }
     func proposePickup(_ proposal: PickupProposal, accessToken: String) async throws -> PickupSession { fatalError() }
     func acceptPickup(reservationID: UUID, accessToken: String) async throws -> PickupSession { fatalError() }

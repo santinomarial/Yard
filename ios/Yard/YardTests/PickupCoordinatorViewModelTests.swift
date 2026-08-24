@@ -26,6 +26,11 @@ private actor PickupRepositoryStub: TransactionRepository {
     func messages(conversationID: UUID, accessToken: String) async throws -> [YardMessage] { [] }
     func sendMessage(_ body: String, conversationID: UUID, accessToken: String) async throws -> YardMessage { fatalError() }
     func markRead(conversationID: UUID, accessToken: String) async throws {}
+    func messageStream(
+        conversationID: UUID, accessToken: String
+    ) async throws -> AsyncThrowingStream<YardMessage, Error> {
+        AsyncThrowingStream { $0.finish() }
+    }
     func pickup(reservationID: UUID, accessToken: String) async throws -> PickupSession {
         throw APIError.rejected(statusCode: 404, code: "pickup_not_found", message: "Not found")
     }

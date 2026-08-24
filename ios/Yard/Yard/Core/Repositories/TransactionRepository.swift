@@ -9,6 +9,9 @@ protocol TransactionRepository: Sendable {
     func messages(conversationID: UUID, accessToken: String) async throws -> [YardMessage]
     func sendMessage(_ body: String, conversationID: UUID, accessToken: String) async throws -> YardMessage
     func markRead(conversationID: UUID, accessToken: String) async throws
+    func messageStream(
+        conversationID: UUID, accessToken: String
+    ) async throws -> AsyncThrowingStream<YardMessage, Error>
     func pickup(reservationID: UUID, accessToken: String) async throws -> PickupSession
     func proposePickup(_ proposal: PickupProposal, accessToken: String) async throws -> PickupSession
     func acceptPickup(reservationID: UUID, accessToken: String) async throws -> PickupSession
@@ -85,6 +88,40 @@ actor LiveTransactionRepository: TransactionRepository {
         )
     }
 
+    func messageStream(
+        conversationID: UUID, accessToken: String
+    ) async throws -> AsyncThrowingStream<YardMessage, Error> {
+        let socket = try await client.webSocketTask(
+            path: "api/v1/conversations/\(conversationID)/ws",
+            accessToken: accessToken
+        )
+        socket.resume()
+        return AsyncThrowingStream { continuation in
+            let receiveTask = Task {
+                do {
+                    while !Task.isCancelled {
+                        let frame = try await socket.receive()
+                        let data: Data
+                        switch frame {
+                        case let .data(value): data = value
+                        case let .string(value): data = Data(value.utf8)
+                        @unknown default: continue
+                        }
+                        continuation.yield(try JSONDecoder.yard.decode(YardMessage.self, from: data))
+                    }
+                } catch is CancellationError {
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: APIError.transport)
+                }
+            }
+            continuation.onTermination = { _ in
+                receiveTask.cancel()
+                socket.cancel(with: .goingAway, reason: nil)
+            }
+        }
+    }
+
     func pickup(reservationID: UUID, accessToken: String) async throws -> PickupSession {
         try await client.request(
             "GET", path: "api/v1/pickups/\(reservationID)", accessToken: accessToken
@@ -154,6 +191,11 @@ actor PreviewTransactionRepository: TransactionRepository {
         )
     }
     func markRead(conversationID: UUID, accessToken: String) async throws {}
+    func messageStream(
+        conversationID: UUID, accessToken: String
+    ) async throws -> AsyncThrowingStream<YardMessage, Error> {
+        AsyncThrowingStream { $0.finish() }
+    }
 
     func pickup(reservationID: UUID, accessToken: String) async throws -> PickupSession {
         throw APIError.rejected(statusCode: 404, code: "pickup_not_found", message: "Not found")
