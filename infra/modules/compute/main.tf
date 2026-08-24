@@ -14,7 +14,7 @@ resource "aws_cloudwatch_log_group" "app" {
 resource "aws_secretsmanager_secret" "application" {
   name                    = "${var.name}/application"
   recovery_window_in_days = 7
-  description             = "Populate JSON keys access_token_secret, verification_pepper, apns_team_id, apns_key_id, and apns_private_key."
+  description             = "Populate JSON keys database_url, access_token_secret, verification_pepper, apns_team_id, apns_key_id, and apns_private_key."
 }
 
 resource "aws_iam_role" "execution" {
@@ -37,7 +37,7 @@ resource "aws_iam_role_policy" "execution_secrets" {
     Statement = [{
       Effect   = "Allow"
       Action   = ["secretsmanager:GetSecretValue"]
-      Resource = [var.database_secret_arn, aws_secretsmanager_secret.application.arn]
+      Resource = [aws_secretsmanager_secret.application.arn]
     }]
   })
 }
@@ -81,8 +81,12 @@ locals {
     { name = "YARD_SES_FROM_EMAIL", value = var.ses_from_email }
   ]
   secrets = [
-    { name = "YARD_DATABASE_CREDENTIALS", valueFrom = var.database_secret_arn },
-    { name = "YARD_APPLICATION_SECRETS", valueFrom = aws_secretsmanager_secret.application.arn }
+    { name = "YARD_DATABASE_URL", valueFrom = "${aws_secretsmanager_secret.application.arn}:database_url::" },
+    { name = "YARD_ACCESS_TOKEN_SECRET", valueFrom = "${aws_secretsmanager_secret.application.arn}:access_token_secret::" },
+    { name = "YARD_VERIFICATION_PEPPER", valueFrom = "${aws_secretsmanager_secret.application.arn}:verification_pepper::" },
+    { name = "YARD_APNS_TEAM_ID", valueFrom = "${aws_secretsmanager_secret.application.arn}:apns_team_id::" },
+    { name = "YARD_APNS_KEY_ID", valueFrom = "${aws_secretsmanager_secret.application.arn}:apns_key_id::" },
+    { name = "YARD_APNS_PRIVATE_KEY", valueFrom = "${aws_secretsmanager_secret.application.arn}:apns_private_key::" }
   ]
   log_configuration = {
     logDriver = "awslogs"

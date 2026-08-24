@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     rate_limit_enabled: bool = True
     max_request_bytes: int = 1_048_576
     trusted_proxy_ips: list[str] = Field(default_factory=list)
+    ses_from_email: str | None = None
 
     @model_validator(mode="after")
     def validate_production_secrets(self) -> "Settings":
@@ -48,8 +49,11 @@ class Settings(BaseSettings):
             or "development-only" in self.access_token_secret
             or len(self.verification_pepper) < 32
             or "development-only" in self.verification_pepper
-            or "development-only" in self.s3_secret_key
             or "*" in self.cors_origins
+            or not self.cors_origins
+            or not self.ses_from_email
+            or "@" not in self.ses_from_email
+            or not self.asset_base_url.startswith("https://")
         )
         if insecure:
             raise ValueError("Production secrets and CORS origins must be explicitly configured")

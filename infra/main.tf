@@ -44,7 +44,6 @@ module "compute" {
   desired_api_count          = var.desired_api_count
   desired_worker_count       = var.desired_worker_count
   desired_admin_count        = var.desired_admin_count
-  database_secret_arn        = module.data.database_secret_arn
   redis_url                  = module.data.redis_url
   asset_bucket_name          = module.storage.asset_bucket_name
   asset_bucket_arn           = module.storage.asset_bucket_arn

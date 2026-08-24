@@ -34,10 +34,7 @@ class RekognitionImageModeration:
         self.bucket = settings.s3_bucket
         session = Session()
         self.client: Any = session.create_client(
-            service_name="rekognition",
-            region_name=settings.s3_region,
-            aws_access_key_id=settings.s3_access_key,
-            aws_secret_access_key=settings.s3_secret_key,
+            service_name="rekognition", region_name=settings.s3_region
         )
 
     async def moderate(self, storage_key: str) -> ImageModerationDecision:

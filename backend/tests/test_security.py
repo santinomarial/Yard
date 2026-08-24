@@ -47,3 +47,14 @@ def test_forwarded_ip_is_trusted_only_from_configured_proxy() -> None:
 def test_production_rejects_default_secrets_and_wildcard_cors() -> None:
     with pytest.raises(ValidationError):
         Settings(environment="production", cors_origins=["*"])
+
+
+def test_production_requires_ses_sender_and_https_assets() -> None:
+    with pytest.raises(ValidationError):
+        Settings(
+            environment="production",
+            access_token_secret="a" * 32,
+            verification_pepper="b" * 32,
+            cors_origins=["https://admin.yard.example"],
+            asset_base_url="http://assets.yard.example",
+        )

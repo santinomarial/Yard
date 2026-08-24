@@ -1,13 +1,17 @@
+import asyncio
 import hashlib
 import hmac
 import secrets
 from datetime import UTC, datetime, timedelta
-from typing import Protocol
+from functools import lru_cache
+from typing import Any, Protocol
 
 import structlog
+from botocore.session import Session  # type: ignore[import-untyped]
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.models.user import EmailVerification, User
 
 logger = structlog.get_logger()
@@ -26,6 +30,43 @@ class EmailProvider(Protocol):
 class DevelopmentEmailProvider:
     async def send_verification(self, email: str, code: str) -> None:
         logger.info("development_verification_email", email=email, code=code)
+
+
+class SESEmailProvider:
+    def __init__(self) -> None:
+        settings = get_settings()
+        if not settings.ses_from_email:
+            raise RuntimeError("YARD_SES_FROM_EMAIL is required in production")
+        self.sender = settings.ses_from_email
+        self.client: Any = Session().create_client("sesv2", region_name=settings.s3_region)
+
+    async def send_verification(self, email: str, code: str) -> None:
+        await asyncio.to_thread(
+            self.client.send_email,
+            FromEmailAddress=self.sender,
+            Destination={"ToAddresses": [email]},
+            Content={
+                "Simple": {
+                    "Subject": {"Data": "Your Yard verification code", "Charset": "UTF-8"},
+                    "Body": {
+                        "Text": {
+                            "Data": (
+                                f"Your Yard verification code is {code}. "
+                                "It expires shortly. If you did not request it, ignore this email."
+                            ),
+                            "Charset": "UTF-8",
+                        }
+                    },
+                }
+            },
+        )
+
+
+@lru_cache
+def get_email_provider() -> EmailProvider:
+    if get_settings().environment == "production":
+        return SESEmailProvider()
+    return DevelopmentEmailProvider()
 
 
 def normalize_email(email: str) -> str:
@@ -79,8 +120,13 @@ async def create_verification(
         expires_at=now + timedelta(minutes=lifetime_minutes),
     )
     session.add(verification)
+    await session.flush()
+    try:
+        await provider.send_verification(normalized, code)
+    except Exception:
+        await session.rollback()
+        raise
     await session.commit()
-    await provider.send_verification(normalized, code)
     return verification, code
 
 

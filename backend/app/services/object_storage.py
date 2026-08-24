@@ -41,15 +41,22 @@ class S3ObjectStorage:
         client_options: dict[str, Any] = {
             "service_name": "s3",
             "region_name": settings.s3_region,
-            "aws_access_key_id": settings.s3_access_key,
-            "aws_secret_access_key": settings.s3_secret_key,
             "config": Config(signature_version="s3v4", s3={"addressing_style": "path"}),
         }
+        if settings.environment != "production":
+            client_options["aws_access_key_id"] = settings.s3_access_key
+            client_options["aws_secret_access_key"] = settings.s3_secret_key
+        public_endpoint = (
+            None if settings.environment == "production" else settings.s3_public_endpoint
+        )
+        internal_endpoint = (
+            None if settings.environment == "production" else settings.s3_internal_endpoint
+        )
         self.public_client = session.create_client(
-            endpoint_url=settings.s3_public_endpoint, **client_options
+            endpoint_url=public_endpoint, **client_options
         )
         self.internal_client = session.create_client(
-            endpoint_url=settings.s3_internal_endpoint, **client_options
+            endpoint_url=internal_endpoint, **client_options
         )
 
     def presign_upload(self, key: str, content_type: str) -> PresignedUpload:

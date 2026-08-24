@@ -9,7 +9,7 @@ This Terraform describes a small production deployment without creating anything
 3. Copy `terraform.tfvars.example` to an untracked `terraform.tfvars` and pin the image digests.
 4. Supply an ACM certificate. The HTTP-only listener is intended only for initial bootstrap; production clients must use HTTPS.
 5. Run `terraform init`, `terraform plan -out yard.tfplan`, review the full plan, then explicitly run `terraform apply yard.tfplan`.
-6. Populate the application Secrets Manager value with strong `access_token_secret` and `verification_pepper` values plus APNs credentials. Convert the RDS-managed JSON credentials into the SQLAlchemy `YARD_DATABASE_URL` in the deployment pipeline or an entrypoint; the task definition intentionally does not put credentials in Terraform state.
+6. Read the RDS-managed credential secret and populate the application Secrets Manager value with a JSON object containing `database_url`, strong `access_token_secret` and `verification_pepper` values, plus `apns_team_id`, `apns_key_id`, and `apns_private_key`. The ECS task definition injects individual JSON keys as environment variables; secret values never enter Terraform state.
 7. Run `alembic upgrade head` as a one-off ECS task before shifting traffic.
 
 Terraform state must live in a separately bootstrapped encrypted remote backend with locking. Commit the provider lock file, but never commit state, variable files, plan files, APNs keys, or exported secrets.

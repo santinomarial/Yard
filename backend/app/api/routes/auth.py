@@ -22,10 +22,10 @@ from app.schemas.auth import (
 )
 from app.services.apple_auth import AppleIdentityTokenVerifier, AppleTokenError
 from app.services.email_verification import (
-    DevelopmentEmailProvider,
     VerificationError,
     confirm_verification,
     create_verification,
+    get_email_provider,
 )
 
 router = APIRouter()
@@ -170,7 +170,7 @@ async def request_verification(
             settings.allowed_harvard_domains,
             settings.verification_pepper,
             settings.verification_code_minutes,
-            DevelopmentEmailProvider(),
+            get_email_provider(),
         )
     except VerificationError as error:
         raise HTTPException(

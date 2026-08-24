@@ -12,7 +12,6 @@ variable "admin_image" { type = string }
 variable "desired_api_count" { type = number }
 variable "desired_worker_count" { type = number }
 variable "desired_admin_count" { type = number }
-variable "database_secret_arn" { type = string }
 variable "redis_url" { type = string }
 variable "asset_bucket_name" { type = string }
 variable "asset_bucket_arn" { type = string }
