@@ -35,7 +35,11 @@ test:
 	docker compose run --rm --no-deps backend python -m pytest -q
 
 integration-test:
-	docker compose run --rm -e PYTEST_ADDOPTS= backend python -m pytest -q -p no:cacheprovider -m integration
+	docker compose exec -T postgres dropdb --if-exists --username yard yard_integration_test
+	docker compose exec -T postgres createdb --username yard yard_integration_test
+	docker compose run --rm -e YARD_DATABASE_URL=postgresql+asyncpg://yard:yard@postgres:5432/yard_integration_test backend alembic upgrade head
+	docker compose run --rm -e YARD_DATABASE_URL=postgresql+asyncpg://yard:yard@postgres:5432/yard_integration_test -e PYTEST_ADDOPTS= backend python -m pytest -q -p no:cacheprovider -m integration
+	docker compose exec -T postgres dropdb --if-exists --username yard yard_integration_test
 
 lint:
 	docker compose run --rm --no-deps backend ruff check .

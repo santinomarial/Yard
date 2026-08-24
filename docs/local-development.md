@@ -34,6 +34,10 @@ curl http://localhost:8000/api/v1/health
 curl 'http://localhost:8000/api/v1/listings?query=monitor'
 ```
 
+`make integration-test` creates, migrates, tests, and removes a dedicated
+`yard_integration_test` database. Race fixtures never share the normal `yard`
+development database.
+
 ## Stop
 
 ```bash
@@ -41,4 +45,3 @@ make stop
 ```
 
 Named Docker volumes preserve local data. Use `docker compose down --volumes` only when you intentionally want to discard all local Yard data.
-
