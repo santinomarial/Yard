@@ -137,3 +137,23 @@ async def test_pickup_cancellation_releases_listing(
     assert reservation is not None and listing is not None
     assert reservation.status == ReservationStatus.CANCELLED
     assert listing.status == ListingStatus.ACTIVE
+
+
+async def test_reservations_are_visible_only_to_participants(
+    client: AsyncClient, seeded_session: AsyncSession
+) -> None:
+    _, reservation, seller, buyer, outsider = await pickup_fixture(seeded_session)
+    reservation_id = reservation.id
+    buyer_headers = headers_for(buyer)
+    seller_headers = headers_for(seller)
+    outsider_headers = headers_for(outsider)
+
+    buyer_rows = await client.get("/api/v1/reservations/mine", headers=buyer_headers)
+    seller_rows = await client.get("/api/v1/reservations/mine", headers=seller_headers)
+    outsider_rows = await client.get("/api/v1/reservations/mine", headers=outsider_headers)
+
+    assert buyer_rows.status_code == 200
+    assert seller_rows.status_code == 200
+    assert [row["id"] for row in buyer_rows.json()] == [str(reservation_id)]
+    assert [row["id"] for row in seller_rows.json()] == [str(reservation_id)]
+    assert outsider_rows.json() == []

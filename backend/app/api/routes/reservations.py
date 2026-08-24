@@ -1,10 +1,12 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
 from app.core.security import CurrentUser
+from app.models.reservation import Reservation
 from app.schemas.reservation import ReservationCreate, ReservationRead, WaitlistRead
 from app.services.reservations import (
     ReservationError,
@@ -23,6 +25,19 @@ def reservation_http_error(error: ReservationError) -> HTTPException:
         status_code=status.HTTP_404_NOT_FOUND if not_found else status.HTTP_409_CONFLICT,
         detail={"code": error.code, "message": str(error)},
     )
+
+
+@router.get("/mine", response_model=list[ReservationRead])
+async def my_reservations(
+    user: CurrentUser, session: AsyncSession = Depends(get_session)
+) -> list[Reservation]:
+    rows = await session.scalars(
+        select(Reservation)
+        .where(or_(Reservation.buyer_id == user.id, Reservation.seller_id == user.id))
+        .order_by(Reservation.created_at.desc())
+        .limit(100)
+    )
+    return list(rows.all())
 
 
 @router.post("", response_model=ReservationRead)
