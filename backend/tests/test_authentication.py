@@ -1,5 +1,8 @@
 from httpx import AsyncClient
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.user import AppleIdentity, User
 from app.services.email_verification import hash_code, validate_harvard_email
 
 
@@ -57,3 +60,27 @@ async def test_rejects_non_harvard_domain(client: AsyncClient) -> None:
     )
     assert response.status_code == 400
     assert response.json()["error"]["code"] == "email_domain_not_allowed"
+
+
+async def test_profile_update_and_account_deletion_revoke_identity(
+    client: AsyncClient, session: AsyncSession
+) -> None:
+    sign_in = await client.post("/api/v1/auth/development", json={"display_name": "Original Name"})
+    token = sign_in.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    updated = await client.patch(
+        "/api/v1/auth/profile", json={"display_name": "Updated Name"}, headers=headers
+    )
+    assert updated.status_code == 200
+    assert updated.json()["display_name"] == "Updated Name"
+
+    deleted = await client.delete("/api/v1/auth/account", headers=headers)
+    assert deleted.status_code == 204
+    assert (await client.get("/api/v1/auth/me", headers=headers)).status_code == 401
+
+    user = await session.scalar(select(User).where(User.display_name == "Deleted Yard member"))
+    assert user is not None
+    assert user.deleted_at is not None
+    identity = await session.scalar(select(AppleIdentity).where(AppleIdentity.user_id == user.id))
+    assert identity is None

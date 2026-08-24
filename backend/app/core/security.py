@@ -49,7 +49,7 @@ async def current_user(
     except (InvalidTokenError, KeyError, ValueError):
         raise credentials_error from None
     user = await session.get(User, user_id)
-    if user is None or user.suspended_at is not None:
+    if user is None or user.suspended_at is not None or user.deleted_at is not None:
         await session.rollback()
         raise credentials_error
     session.expunge(user)

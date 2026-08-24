@@ -1,18 +1,21 @@
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.database import get_session
 from app.core.security import CurrentUser, create_access_token
-from app.models.user import AppleIdentity, User
+from app.models.listing import Listing, ListingStatus
+from app.models.marketplace_event import ListingEvent
+from app.models.user import AppleIdentity, EmailVerification, User
 from app.schemas.auth import (
     AppleSignInRequest,
     AuthResponse,
     DevelopmentSignInRequest,
     UserRead,
+    UserUpdate,
     VerificationConfirm,
     VerificationRequest,
     VerificationRequested,
@@ -97,6 +100,60 @@ async def apple_sign_in(
 @router.get("/me", response_model=UserRead)
 async def me(user: CurrentUser) -> UserRead:
     return user_read(user)
+
+
+@router.patch("/profile", response_model=UserRead)
+async def update_me(
+    payload: UserUpdate,
+    user: CurrentUser,
+    session: AsyncSession = Depends(get_session),
+) -> UserRead:
+    persisted = await session.get(User, user.id, with_for_update=True)
+    if persisted is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+    persisted.display_name = payload.display_name.strip()
+    await session.commit()
+    return user_read(persisted)
+
+
+@router.delete("/account", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_me(
+    user: CurrentUser,
+    session: AsyncSession = Depends(get_session),
+) -> Response:
+    persisted = await session.get(User, user.id, with_for_update=True)
+    if persisted is None:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    listings = await session.scalars(
+        select(Listing).where(
+            Listing.seller_id == user.id,
+            Listing.status.not_in([ListingStatus.SOLD, ListingStatus.REMOVED]),
+        )
+    )
+    for listing in listings:
+        previous_status = listing.status
+        listing.status = ListingStatus.REMOVED
+        session.add(
+            ListingEvent(
+                listing_id=listing.id,
+                actor_id=user.id,
+                event_type="ListingRemovedForAccountDeletion",
+                from_status=previous_status.value,
+                to_status=ListingStatus.REMOVED.value,
+            )
+        )
+
+    await session.execute(delete(AppleIdentity).where(AppleIdentity.user_id == user.id))
+    await session.execute(delete(EmailVerification).where(EmailVerification.user_id == user.id))
+    persisted.display_name = "Deleted Yard member"
+    persisted.harvard_email = None
+    persisted.email_verified_at = None
+    persisted.terms_accepted_at = None
+    persisted.is_admin = False
+    persisted.deleted_at = datetime.now(UTC)
+    await session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post("/verification/request", response_model=VerificationRequested)

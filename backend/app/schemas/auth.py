@@ -24,6 +24,10 @@ class UserRead(BaseModel):
     admin: bool
 
 
+class UserUpdate(BaseModel):
+    display_name: str = Field(min_length=1, max_length=80)
+
+
 class AuthResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
