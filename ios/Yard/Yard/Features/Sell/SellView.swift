@@ -10,6 +10,9 @@ struct SellView: View {
     @State private var pickerItems: [PhotosPickerItem] = []
     @State private var showPublishedConfirmation = false
     @State private var showCamera = false
+    @State private var editingDraftID: UUID?
+    @State private var isBatchPublishing = false
+    @State private var publicationMessage = "Your item passed its checks and is now visible in Yard."
 
     private let analyzer = VisionItemAnalysisService()
 
@@ -34,12 +37,16 @@ struct SellView: View {
             .ignoresSafeArea()
         }
         .alert("Listing published", isPresented: $showPublishedConfirmation) {
-            Button("Done") { model.reset(); pickerItems = [] }
+            Button("Done") { resetEditor() }
         } message: {
-            Text("Your item passed its checks and is now visible in Yard.")
+            Text(publicationMessage)
         }
         .onChange(of: model.state) { _, state in
-            if case .published = state { showPublishedConfirmation = true }
+            if case .published = state, !isBatchPublishing {
+                removeEditingDraft()
+                publicationMessage = "Your item passed its checks and is now visible in Yard."
+                showPublishedConfirmation = true
+            }
         }
     }
 
@@ -145,19 +152,44 @@ struct SellView: View {
             ForEach(savedDrafts.prefix(5)) { draft in
                 Button {
                     model.restore(draft)
+                    editingDraftID = draft.id
                 } label: {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(draft.title.isEmpty ? "Untitled draft" : draft.title)
-                            .foregroundStyle(.primary)
-                        Text(draft.updatedAt, format: .relative(presentation: .named))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    HStack {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(draft.title.isEmpty ? "Untitled draft" : draft.title)
+                                .foregroundStyle(.primary)
+                            Text(draft.updatedAt, format: .relative(presentation: .named))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        if draft.isReadyForBatch {
+                            Label("Reviewed", systemImage: "checkmark.seal.fill")
+                                .font(.caption)
+                                .foregroundStyle(.green)
+                        }
                     }
                 }
             }
             .onDelete { offsets in
                 for index in offsets { modelContext.delete(savedDrafts[index]) }
                 try? modelContext.save()
+            }
+
+            Button("Use this pickup area for all drafts") {
+                for draft in savedDrafts {
+                    draft.pickupZone = model.pickupZone
+                    draft.updatedAt = .now
+                }
+                try? modelContext.save()
+            }
+
+            let reviewedCount = savedDrafts.filter(\.isReadyForBatch).count
+            if reviewedCount > 0 {
+                Button("Publish \(reviewedCount) reviewed drafts") {
+                    Task { await publishReviewedDrafts() }
+                }
+                .disabled(isBatchPublishing || environment.session.accessToken == nil)
             }
         }
     }
@@ -171,10 +203,21 @@ struct SellView: View {
                 ProgressView(value: model.progress) { Text("Uploading and checking photos") }
             }
             Button("Save draft on this device") {
-                modelContext.insert(model.makeLocalDraft())
-                try? modelContext.save()
+                saveCurrentDraft(readyForBatch: false)
             }
             .accessibilityIdentifier("saveListingDraftButton")
+            Button("Save and mark reviewed for batch") {
+                saveCurrentDraft(readyForBatch: true)
+            }
+            .disabled(!model.canPublish)
+            Button("Create another draft with these common details") {
+                let draft = model.makeNextItemDraft()
+                modelContext.insert(draft)
+                try? modelContext.save()
+                model.restore(draft)
+                editingDraftID = draft.id
+                pickerItems = []
+            }
             Button("Publish listing") {
                 guard let token = environment.session.accessToken else { return }
                 Task { await model.publish(using: environment.selling, accessToken: token) }
@@ -183,6 +226,64 @@ struct SellView: View {
             .disabled(!model.canPublish)
             .accessibilityIdentifier("publishListingButton")
         }
+    }
+
+    private func saveCurrentDraft(readyForBatch: Bool) {
+        if let draft = editingDraft {
+            for photo in draft.photos { modelContext.delete(photo) }
+            model.update(draft, readyForBatch: readyForBatch)
+        } else {
+            let draft = model.makeLocalDraft()
+            draft.isReadyForBatch = readyForBatch
+            modelContext.insert(draft)
+            editingDraftID = draft.id
+        }
+        try? modelContext.save()
+    }
+
+    private func publishReviewedDrafts() async {
+        guard let token = environment.session.accessToken else { return }
+        isBatchPublishing = true
+        var publishedCount = 0
+        let reviewed = savedDrafts.filter(\.isReadyForBatch)
+        for draft in reviewed {
+            model.restore(draft)
+            guard model.canPublish else {
+                draft.isReadyForBatch = false
+                continue
+            }
+            await model.publish(using: environment.selling, accessToken: token)
+            if case .published = model.state {
+                modelContext.delete(draft)
+                publishedCount += 1
+            } else {
+                break
+            }
+        }
+        try? modelContext.save()
+        isBatchPublishing = false
+        editingDraftID = nil
+        if publishedCount > 0 {
+            publicationMessage = "Published \(publishedCount) individually reviewed \(publishedCount == 1 ? "listing" : "listings")."
+            showPublishedConfirmation = true
+        }
+    }
+
+    private var editingDraft: ListingDraftRecord? {
+        savedDrafts.first { $0.id == editingDraftID }
+    }
+
+    private func removeEditingDraft() {
+        guard let editingDraft else { return }
+        modelContext.delete(editingDraft)
+        try? modelContext.save()
+        editingDraftID = nil
+    }
+
+    private func resetEditor() {
+        model.reset()
+        pickerItems = []
+        editingDraftID = nil
     }
 }
 

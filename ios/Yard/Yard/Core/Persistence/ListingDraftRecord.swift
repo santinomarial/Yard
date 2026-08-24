@@ -12,6 +12,7 @@ final class ListingDraftRecord {
     var isFree: Bool
     var pickupZone: String
     var updatedAt: Date
+    var isReadyForBatch: Bool = false
     @Relationship(deleteRule: .cascade) var photos: [DraftPhotoRecord]
 
     init(
@@ -23,6 +24,7 @@ final class ListingDraftRecord {
         priceText: String,
         isFree: Bool,
         pickupZone: String,
+        isReadyForBatch: Bool = false,
         photos: [DraftPhotoRecord]
     ) {
         self.id = id
@@ -34,6 +36,7 @@ final class ListingDraftRecord {
         self.isFree = isFree
         self.pickupZone = pickupZone
         self.updatedAt = .now
+        self.isReadyForBatch = isReadyForBatch
         self.photos = photos
     }
 

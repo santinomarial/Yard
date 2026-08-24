@@ -138,6 +138,34 @@ final class SellViewModel {
         )
     }
 
+    func makeNextItemDraft() -> ListingDraftRecord {
+        ListingDraftRecord(
+            title: "",
+            itemDescription: "",
+            categoryID: categoryID,
+            condition: condition,
+            priceText: "",
+            isFree: false,
+            pickupZone: pickupZone,
+            photos: []
+        )
+    }
+
+    func update(_ draft: ListingDraftRecord, readyForBatch: Bool) {
+        draft.title = title
+        draft.itemDescription = itemDescription
+        draft.categoryID = categoryID
+        draft.conditionRawValue = condition.rawValue
+        draft.priceText = priceText
+        draft.isFree = isFree
+        draft.pickupZone = pickupZone
+        draft.updatedAt = .now
+        draft.isReadyForBatch = readyForBatch
+        draft.photos = photos.enumerated().map {
+            DraftPhotoRecord(sortOrder: $0.offset, data: $0.element.data)
+        }
+    }
+
     func restore(_ draft: ListingDraftRecord) {
         title = draft.title
         itemDescription = draft.itemDescription

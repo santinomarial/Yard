@@ -36,4 +36,26 @@ struct SellViewModelTests {
 
         #expect(!model.canPublish)
     }
+
+    @Test
+    func nextItemDraftKeepsOnlyReusableFields() {
+        let model = SellViewModel()
+        let categoryID = UUID()
+        model.title = "Desk lamp"
+        model.itemDescription = "A useful lamp"
+        model.categoryID = categoryID
+        model.condition = .fair
+        model.priceText = "20"
+        model.pickupZone = "SEC"
+
+        let next = model.makeNextItemDraft()
+
+        #expect(next.title.isEmpty)
+        #expect(next.itemDescription.isEmpty)
+        #expect(next.categoryID == categoryID)
+        #expect(next.condition == .fair)
+        #expect(next.priceText.isEmpty)
+        #expect(next.pickupZone == "SEC")
+        #expect(next.photos.isEmpty)
+    }
 }
