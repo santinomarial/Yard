@@ -1,0 +1,139 @@
+import SwiftUI
+
+struct HomeView: View {
+    @Environment(AppEnvironment.self) private var environment
+    @State private var model = HomeViewModel()
+
+    private let columns = [
+        GridItem(.flexible(), spacing: YardTheme.Spacing.medium),
+        GridItem(.flexible(), spacing: YardTheme.Spacing.medium),
+    ]
+
+    var body: some View {
+        Group {
+            switch model.state {
+            case .idle, .loading where model.listings.isEmpty:
+                ProgressView("Loading nearby items…")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            case let .failed(message) where model.listings.isEmpty:
+                ContentUnavailableView {
+                    Label("Marketplace unavailable", systemImage: "wifi.exclamationmark")
+                } description: {
+                    Text(message)
+                } actions: {
+                    Button("Try again") {
+                        Task { await model.reload(using: environment.marketplace) }
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+            default:
+                marketplace
+            }
+        }
+        .background(YardTheme.Colors.background)
+        .navigationTitle("Yard")
+        .navigationBarTitleDisplayMode(.large)
+        .navigationDestination(for: Listing.self) { ListingDetailView(listing: $0) }
+        .task { await model.load(using: environment.marketplace) }
+    }
+
+    private var marketplace: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: YardTheme.Spacing.large) {
+                NavigationLink {
+                    FeaturePlaceholder(
+                        title: "Search",
+                        message: "Search is available from the Search tab.",
+                        symbol: "magnifyingglass"
+                    )
+                } label: {
+                    Label("What are you looking for?", systemImage: "magnifyingglass")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(YardTheme.Spacing.medium)
+                        .background(.regularMaterial)
+                        .clipShape(
+                            RoundedRectangle(cornerRadius: YardTheme.Radius.button, style: .continuous)
+                        )
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("homeSearchPrompt")
+
+                categorySection
+
+                if !model.listings.isEmpty {
+                    listingSection(title: "Recently Listed", listings: model.listings)
+                }
+
+                if !model.freeListings.isEmpty {
+                    freeSection
+                }
+            }
+            .padding(.horizontal, YardTheme.Spacing.medium)
+            .padding(.bottom, YardTheme.Spacing.xLarge)
+        }
+        .refreshable { await model.reload(using: environment.marketplace) }
+    }
+
+    private var categorySection: some View {
+        VStack(alignment: .leading, spacing: YardTheme.Spacing.medium) {
+            Text("Browse")
+                .font(.title2.bold())
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: YardTheme.Spacing.small) {
+                    ForEach(model.categories) { category in
+                        Label(category.name, systemImage: category.symbol)
+                            .font(.subheadline.weight(.semibold))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
+                            .background(YardTheme.Colors.surface)
+                            .clipShape(Capsule())
+                            .accessibilityIdentifier("category_\(category.slug)")
+                    }
+                }
+            }
+        }
+    }
+
+    private func listingSection(title: String, listings: [Listing]) -> some View {
+        VStack(alignment: .leading, spacing: YardTheme.Spacing.medium) {
+            Text(title)
+                .font(.title2.bold())
+
+            LazyVGrid(columns: columns, spacing: YardTheme.Spacing.large) {
+                ForEach(listings) { listing in
+                    NavigationLink(value: listing) {
+                        ListingCard(listing: listing)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    private var freeSection: some View {
+        VStack(alignment: .leading, spacing: YardTheme.Spacing.medium) {
+            Text("Free Near You")
+                .font(.title2.bold())
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: YardTheme.Spacing.medium) {
+                    ForEach(model.freeListings) { listing in
+                        NavigationLink(value: listing) {
+                            ListingCard(listing: listing)
+                                .frame(width: 180)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+}
+
+#Preview {
+    NavigationStack { HomeView() }
+        .environment(AppEnvironment(marketplace: PreviewMarketplaceRepository()))
+}

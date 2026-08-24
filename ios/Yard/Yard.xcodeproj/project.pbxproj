@@ -9,14 +9,20 @@
 /* Begin PBXBuildFile section */
 		01E2132CF086B94EE7D8FDDB /* Listing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FCCBDEDFBED9C5F92624C /* Listing.swift */; };
 		1CBCEC0101D37AA3BD354FBB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 56E40A440ADCAB402268B4E9 /* Assets.xcassets */; };
+		22457D0A33BEB2BB43DB3800 /* PreviewMarketplaceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C2C6EC5551CC36C36A57214 /* PreviewMarketplaceRepository.swift */; };
 		4AFF8E0E05BCBF01633A3D34 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE6A9C26911B57B12219FE24 /* AppEnvironment.swift */; };
 		7056CE16C46FAA9D79328637 /* YardTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A33A8ECD9BBE591CF335801 /* YardTheme.swift */; };
+		972758225310D8607E868B0A /* HomeViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BAF6DC285AEB4B5EBDF4A30 /* HomeViewModelTests.swift */; };
 		9807873A2A2A58F57CC3D447 /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CACE2C2CAF666984B03EDCC /* Category.swift */; };
 		9ABB896A85F77663A9B2E2EE /* MarketplaceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF7790435F52441874070019 /* MarketplaceRepository.swift */; };
+		B709C252274D25CA03CB6E68 /* ListingDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4D3A84DCB17540F6D8760FC /* ListingDetailView.swift */; };
+		BB3C67F08230F39F65C03CB9 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6576AD0CF71E7D08244A9EC1 /* HomeView.swift */; };
 		C5BA37DE0CED01324A581A52 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2460E8BFE8B143152C648F2D /* RootTabView.swift */; };
+		C8A7EE2E0ECD0813754810D6 /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B8F092CF014829634F0AD6C /* HomeViewModel.swift */; };
 		CC5684C5AFB3174E3752517B /* YardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E06C68B411310B9AABF60BE /* YardApp.swift */; };
 		CEC2DB2B15037584EEF4563E /* ModelDecodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99AC424DD294154BBB3635F5 /* ModelDecodingTests.swift */; };
 		D21A9AC38FA5DCE1DC66F1A4 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 212CAC6E2D0F0E1ED408D3F4 /* APIClient.swift */; };
+		E7D832374EA2114E8A4C0285 /* ListingCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 277F45766983DC0FE246B96E /* ListingCard.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,11 +40,17 @@
 		0E06C68B411310B9AABF60BE /* YardApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YardApp.swift; sourceTree = "<group>"; };
 		212CAC6E2D0F0E1ED408D3F4 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		2460E8BFE8B143152C648F2D /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
+		277F45766983DC0FE246B96E /* ListingCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListingCard.swift; sourceTree = "<group>"; };
+		4C2C6EC5551CC36C36A57214 /* PreviewMarketplaceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewMarketplaceRepository.swift; sourceTree = "<group>"; };
 		56E40A440ADCAB402268B4E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		597CE30A5C4DC691FE0C59FE /* YardTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = YardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6576AD0CF71E7D08244A9EC1 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		6A33A8ECD9BBE591CF335801 /* YardTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YardTheme.swift; sourceTree = "<group>"; };
+		7B8F092CF014829634F0AD6C /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
+		7BAF6DC285AEB4B5EBDF4A30 /* HomeViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModelTests.swift; sourceTree = "<group>"; };
 		835FCCBDEDFBED9C5F92624C /* Listing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Listing.swift; sourceTree = "<group>"; };
 		99AC424DD294154BBB3635F5 /* ModelDecodingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelDecodingTests.swift; sourceTree = "<group>"; };
+		A4D3A84DCB17540F6D8760FC /* ListingDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListingDetailView.swift; sourceTree = "<group>"; };
 		ED859673BB2610C78C35B7F7 /* Yard.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Yard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FE6A9C26911B57B12219FE24 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		FF7790435F52441874070019 /* MarketplaceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceRepository.swift; sourceTree = "<group>"; };
@@ -57,6 +69,7 @@
 			isa = PBXGroup;
 			children = (
 				FF7790435F52441874070019 /* MarketplaceRepository.swift */,
+				4C2C6EC5551CC36C36A57214 /* PreviewMarketplaceRepository.swift */,
 			);
 			path = Repositories;
 			sourceTree = "<group>";
@@ -121,6 +134,7 @@
 				0E06C68B411310B9AABF60BE /* YardApp.swift */,
 				E73A3FACDD0643BF1D8F7B1B /* App */,
 				6FA8209013CFA027FB62BB5B /* Core */,
+				D070F46A9A53DD9F5D8505F0 /* Features */,
 				09CEC17D7031EC92F94A64DB /* Resources */,
 			);
 			path = Yard;
@@ -129,9 +143,19 @@
 		CC66F82879199C751674B6FD /* YardTests */ = {
 			isa = PBXGroup;
 			children = (
+				7BAF6DC285AEB4B5EBDF4A30 /* HomeViewModelTests.swift */,
 				99AC424DD294154BBB3635F5 /* ModelDecodingTests.swift */,
 			);
 			path = YardTests;
+			sourceTree = "<group>";
+		};
+		D070F46A9A53DD9F5D8505F0 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				EEA91D6CF4FFF1B09ADF8666 /* Home */,
+				EF104B8CF6F9EEF01D993563 /* ListingDetail */,
+			);
+			path = Features;
 			sourceTree = "<group>";
 		};
 		E73A3FACDD0643BF1D8F7B1B /* App */ = {
@@ -141,6 +165,24 @@
 				2460E8BFE8B143152C648F2D /* RootTabView.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		EEA91D6CF4FFF1B09ADF8666 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				6576AD0CF71E7D08244A9EC1 /* HomeView.swift */,
+				7B8F092CF014829634F0AD6C /* HomeViewModel.swift */,
+				277F45766983DC0FE246B96E /* ListingCard.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		EF104B8CF6F9EEF01D993563 /* ListingDetail */ = {
+			isa = PBXGroup;
+			children = (
+				A4D3A84DCB17540F6D8760FC /* ListingDetailView.swift */,
+			);
+			path = ListingDetail;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -238,8 +280,13 @@
 				D21A9AC38FA5DCE1DC66F1A4 /* APIClient.swift in Sources */,
 				4AFF8E0E05BCBF01633A3D34 /* AppEnvironment.swift in Sources */,
 				9807873A2A2A58F57CC3D447 /* Category.swift in Sources */,
+				BB3C67F08230F39F65C03CB9 /* HomeView.swift in Sources */,
+				C8A7EE2E0ECD0813754810D6 /* HomeViewModel.swift in Sources */,
 				01E2132CF086B94EE7D8FDDB /* Listing.swift in Sources */,
+				E7D832374EA2114E8A4C0285 /* ListingCard.swift in Sources */,
+				B709C252274D25CA03CB6E68 /* ListingDetailView.swift in Sources */,
 				9ABB896A85F77663A9B2E2EE /* MarketplaceRepository.swift in Sources */,
+				22457D0A33BEB2BB43DB3800 /* PreviewMarketplaceRepository.swift in Sources */,
 				C5BA37DE0CED01324A581A52 /* RootTabView.swift in Sources */,
 				CC5684C5AFB3174E3752517B /* YardApp.swift in Sources */,
 				7056CE16C46FAA9D79328637 /* YardTheme.swift in Sources */,
@@ -250,6 +297,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				972758225310D8607E868B0A /* HomeViewModelTests.swift in Sources */,
 				CEC2DB2B15037584EEF4563E /* ModelDecodingTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -4,11 +4,7 @@ struct RootTabView: View {
     var body: some View {
         TabView {
             NavigationStack {
-                FeaturePlaceholder(
-                    title: "Yard",
-                    message: "Nearby marketplace inventory will appear here.",
-                    symbol: "house"
-                )
+                HomeView()
             }
             .tabItem { Label("Home", systemImage: "house") }
 
@@ -52,7 +48,7 @@ struct RootTabView: View {
     }
 }
 
-private struct FeaturePlaceholder: View {
+struct FeaturePlaceholder: View {
     let title: String
     let message: String
     let symbol: String
@@ -68,4 +64,3 @@ private struct FeaturePlaceholder: View {
     RootTabView()
         .environment(AppEnvironment.live())
 }
-
