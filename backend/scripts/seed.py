@@ -6,6 +6,7 @@ from sqlalchemy import select
 
 from app.core.database import SessionFactory
 from app.models import Category, Listing, ListingCondition, ListingStatus
+from app.services.embeddings import refresh_listing_embeddings
 
 NAMESPACE = uuid.UUID("d6267f90-d450-4f75-aabc-40eb9f34728e")
 
@@ -102,6 +103,8 @@ async def seed() -> None:
                     save_count=(index * 3) % 11,
                 )
             )
+        await session.flush()
+        await refresh_listing_embeddings(session)
         await session.commit()
 
 

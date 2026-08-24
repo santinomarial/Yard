@@ -1,7 +1,7 @@
 import uuid
 from urllib.parse import quote
 
-from sqlalchemy import Select, func, or_, select
+from sqlalchemy import Select, case, func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
@@ -10,6 +10,7 @@ from app.models.listing import Listing, ListingStatus
 from app.models.listing_image import ListingImage, ListingImageStatus
 from app.schemas.listing import ListingPage, ListingQuery, ListingRead
 from app.schemas.listing_image import ListingImageRead
+from app.services.embeddings import local_embedding, vector_literal
 
 
 def image_url(storage_key: str) -> str:
@@ -58,10 +59,10 @@ def listing_read_model(listing: Listing) -> ListingRead:
 
 
 def _apply_filters(
-    statement: Select[tuple[Listing]], query: ListingQuery
+    statement: Select[tuple[Listing]], query: ListingQuery, *, include_query_text: bool = True
 ) -> Select[tuple[Listing]]:
     statement = statement.where(Listing.status == ListingStatus.ACTIVE)
-    if query.query:
+    if query.query and include_query_text:
         pattern = f"%{query.query.strip()}%"
         statement = statement.where(
             or_(Listing.title.ilike(pattern), Listing.description.ilike(pattern))
@@ -81,9 +82,59 @@ def _apply_filters(
     return statement
 
 
+async def hybrid_candidate_ids(session: AsyncSession, query: str) -> list[uuid.UUID]:
+    embedding = vector_literal(local_embedding(query))
+    rows = await session.execute(
+        text(
+            """
+            WITH lexical AS (
+                SELECT id,
+                       ts_rank(search_document, websearch_to_tsquery('english', :query)) AS score
+                FROM listings
+                WHERE status = 'ACTIVE'
+                  AND search_document @@ websearch_to_tsquery('english', :query)
+                ORDER BY score DESC
+                LIMIT 200
+            ),
+            semantic AS (
+                SELECT id, 1 - (embedding <=> CAST(:embedding AS vector)) AS score
+                FROM listings
+                WHERE status = 'ACTIVE' AND embedding IS NOT NULL
+                ORDER BY embedding <=> CAST(:embedding AS vector)
+                LIMIT 200
+            ),
+            candidates AS (
+                SELECT id, score * 0.55 AS score FROM lexical
+                UNION ALL
+                SELECT id, score * 0.45 AS score FROM semantic
+            )
+            SELECT id
+            FROM candidates
+            GROUP BY id
+            ORDER BY SUM(score) DESC
+            LIMIT 300
+            """
+        ),
+        {"query": query, "embedding": embedding},
+    )
+    return [row[0] for row in rows]
+
+
 async def search_listings(session: AsyncSession, query: ListingQuery) -> ListingPage:
-    filtered = _apply_filters(select(Listing), query)
-    count_statement = _apply_filters(select(Listing), query).with_only_columns(
+    ranked_ids: list[uuid.UUID] | None = None
+    is_postgres = session.bind is not None and session.bind.dialect.name == "postgresql"
+    if query.query and is_postgres:
+        ranked_ids = await hybrid_candidate_ids(session, query.query.strip())
+        if not ranked_ids:
+            return ListingPage(items=[], total=0, limit=query.limit, offset=query.offset)
+
+    include_query_text = ranked_ids is None
+    filtered = _apply_filters(select(Listing), query, include_query_text=include_query_text)
+    count_source = _apply_filters(select(Listing), query, include_query_text=include_query_text)
+    if ranked_ids is not None:
+        filtered = filtered.where(Listing.id.in_(ranked_ids))
+        count_source = count_source.where(Listing.id.in_(ranked_ids))
+    count_statement = count_source.with_only_columns(
         func.count(Listing.id), maintain_column_froms=True
     )
     total = int((await session.scalar(count_statement)) or 0)
@@ -92,6 +143,9 @@ async def search_listings(session: AsyncSession, query: ListingQuery) -> Listing
         filtered = filtered.order_by(Listing.price_cents.asc(), Listing.published_at.desc())
     elif query.sort == "price_desc":
         filtered = filtered.order_by(Listing.price_cents.desc(), Listing.published_at.desc())
+    elif ranked_ids is not None and query.sort == "recommended":
+        rank = {listing_id: index for index, listing_id in enumerate(ranked_ids)}
+        filtered = filtered.order_by(case(rank, value=Listing.id, else_=len(rank)))
     else:
         filtered = filtered.order_by(Listing.published_at.desc())
 

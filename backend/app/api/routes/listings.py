@@ -20,6 +20,7 @@ from app.schemas.listing_image import (
     ListingImageUploadRequest,
 )
 from app.services.buyer import match_listing
+from app.services.embeddings import write_listing_embedding
 from app.services.image_moderation import (
     ImageModerationProvider,
     get_image_moderation_provider,
@@ -216,6 +217,7 @@ async def submit_listing(
         )
     )
     if decision.approved:
+        await write_listing_embedding(session, listing)
         await match_listing(session, listing)
     await session.commit()
     return listing_read_model(listing)
@@ -398,7 +400,7 @@ async def list_listings(
     max_price_cents: int | None = Query(default=None, ge=0),
     free_only: bool = False,
     pickup_zone: str | None = None,
-    sort: str = Query(default="newest", pattern="^(newest|price_asc|price_desc)$"),
+    sort: str = Query(default="recommended", pattern="^(recommended|newest|price_asc|price_desc)$"),
     limit: int = Query(default=30, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     session: AsyncSession = Depends(get_session),

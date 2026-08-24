@@ -45,7 +45,7 @@ class ListingQuery(BaseModel):
     max_price_cents: int | None = Field(default=None, ge=0)
     free_only: bool = False
     pickup_zone: str | None = None
-    sort: str = "newest"
+    sort: str = "recommended"
     limit: int = Field(default=30, ge=1, le=100)
     offset: int = Field(default=0, ge=0)
 

@@ -80,16 +80,18 @@ struct ListingFilters: Equatable, Sendable {
     var maximumPriceCents: Int?
     var freeOnly = false
     var pickupZone: String?
-    var sort = ListingSort.newest
+    var sort = ListingSort.recommended
 }
 
 enum ListingSort: String, CaseIterable, Sendable {
+    case recommended
     case newest
     case priceAscending = "price_asc"
     case priceDescending = "price_desc"
 
     var displayName: String {
         switch self {
+        case .recommended: "Recommended"
         case .newest: "Newest"
         case .priceAscending: "Price: low to high"
         case .priceDescending: "Price: high to low"

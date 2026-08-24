@@ -27,7 +27,7 @@ from app.services.reservations import (
     reserve_listing,
 )
 
-pytestmark = [pytest.mark.integration, pytest.mark.asyncio(loop_scope="module")]
+pytestmark = [pytest.mark.integration, pytest.mark.asyncio(loop_scope="session")]
 
 
 async def setup_inventory() -> tuple[uuid.UUID, list[uuid.UUID]]:
