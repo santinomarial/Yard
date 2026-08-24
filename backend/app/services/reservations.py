@@ -4,6 +4,7 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.metrics import metrics
 from app.models.listing import Listing, ListingStatus
 from app.models.marketplace_event import ListingEvent
 from app.models.pickup import PickupSession, PickupStatus
@@ -186,6 +187,8 @@ async def expire_due_reservations(session: AsyncSession, limit: int = 100) -> in
                 pickup.cancelled_at = datetime.now(UTC)
             await release_or_promote(session, listing, reservation.buyer_id, "ReservationExpired")
             expired += 1
+    if expired:
+        metrics.increment("reservation_expirations_total", expired)
     return expired
 
 

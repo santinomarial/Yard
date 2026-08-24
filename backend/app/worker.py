@@ -3,6 +3,7 @@ import asyncio
 import structlog
 
 from app.core.database import SessionFactory
+from app.core.metrics import metrics
 from app.services.notifications import (
     deliver_pending_notifications,
     enqueue_due_notifications,
@@ -35,6 +36,7 @@ async def main() -> None:
         try:
             await run_once()
         except Exception:
+            metrics.increment("job_failures_total", job="worker_cycle")
             logger.exception("worker_cycle_failed")
         await asyncio.sleep(15)
 

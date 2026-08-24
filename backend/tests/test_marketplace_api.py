@@ -8,6 +8,8 @@ async def test_health(client: AsyncClient) -> None:
     assert response.headers["X-Request-ID"]
     assert response.headers["X-Content-Type-Options"] == "nosniff"
     assert response.headers["X-Frame-Options"] == "DENY"
+    metrics = await client.get("/api/v1/metrics")
+    assert "http_request_duration_seconds_count" in metrics.text
 
 
 async def test_categories_are_backend_driven(client: AsyncClient) -> None:

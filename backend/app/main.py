@@ -10,6 +10,7 @@ from redis.asyncio import Redis
 
 from app.api.router import api_router
 from app.core.config import get_settings
+from app.core.metrics import metrics
 from app.core.rate_limit import RedisRateLimiter
 
 settings = get_settings()
@@ -107,7 +108,33 @@ async def request_context(request: Request, call_next):  # type: ignore[no-untyp
             ),
             request_id,
         )
-    response = await call_next(request)
+    try:
+        response = await call_next(request)
+    except Exception:
+        metrics.increment(
+            "http_requests_total", method=request.method, route="unhandled", status="500"
+        )
+        logger.exception(
+            "http_request_failed",
+            request_id=request_id,
+            route=request.url.path,
+            method=request.method,
+        )
+        raise
+    route = getattr(request.scope.get("route"), "path", request.url.path)
+    latency_seconds = time.perf_counter() - started
+    metrics.increment(
+        "http_requests_total",
+        method=request.method,
+        route=route,
+        status=str(response.status_code),
+    )
+    metrics.observe(
+        "http_request_duration_seconds",
+        latency_seconds,
+        method=request.method,
+        route=route,
+    )
     secure_response(response, request_id)
     logger.info(
         "http_request",
@@ -115,7 +142,7 @@ async def request_context(request: Request, call_next):  # type: ignore[no-untyp
         route=request.url.path,
         method=request.method,
         status=response.status_code,
-        latency_ms=round((time.perf_counter() - started) * 1000, 2),
+        latency_ms=round(latency_seconds * 1000, 2),
     )
     return response
 

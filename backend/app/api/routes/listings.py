@@ -1,3 +1,4 @@
+import time
 import uuid
 from datetime import UTC, datetime
 from typing import Annotated
@@ -8,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.database import get_session
+from app.core.metrics import metrics
 from app.core.security import CurrentUser
 from app.models.category import Category
 from app.models.listing import Listing, ListingCondition, ListingStatus
@@ -439,7 +441,13 @@ async def list_listings(
         limit=limit,
         offset=offset,
     )
+    search_started = time.perf_counter()
     page = await search_listings(session, filters)
+    metrics.observe(
+        "search_latency_seconds",
+        time.perf_counter() - search_started,
+        strategy="hybrid" if query else "browse",
+    )
     if query:
         record_event(
             session,

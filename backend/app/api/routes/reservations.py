@@ -5,6 +5,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
+from app.core.metrics import metrics
 from app.core.security import CurrentUser
 from app.models.reservation import Reservation
 from app.schemas.reservation import ReservationCreate, ReservationRead, WaitlistRead
@@ -61,6 +62,7 @@ async def create_reservation(
             session, payload.listing_id, user.id, payload.idempotency_key
         )
     except ReservationError as error:
+        metrics.increment("reservation_conflicts_total", code=error.code)
         raise reservation_http_error(error) from None
     record_event(
         session,

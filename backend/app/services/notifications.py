@@ -11,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
+from app.core.metrics import metrics
 from app.models.notification import DeviceToken, NotificationOutbox, NotificationStatus
 from app.models.pickup import PickupSession, PickupStatus
 from app.models.reservation import Reservation, ReservationStatus, WaitlistEntry, WaitlistStatus
@@ -172,6 +173,7 @@ async def deliver_pending_notifications(
                     seconds=min(3_600, 2**notification.attempts * 15)
                 )
             failed += 1
+            metrics.increment("notification_failures_total")
             logger.exception(
                 "notification_delivery_failed",
                 notification_id=str(notification.id),
