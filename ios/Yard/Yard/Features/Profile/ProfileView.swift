@@ -57,6 +57,31 @@ struct ProfileView: View {
                 }
             }
 
+            Section("Exchanges") {
+                if model.reservations.isEmpty {
+                    Text("Reserved purchases and sales will appear here.")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(model.reservations) { reservation in
+                        NavigationLink {
+                            PickupCoordinatorView(reservation: reservation)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(reservation.buyerID == environment.session.currentUser?.id ? "Purchase" : "Sale")
+                                    .font(.headline)
+                                Text(reservation.status.displayName)
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(reservation.status == .active ? .orange : .secondary)
+                                if reservation.status == .active {
+                                    Text("Reservation ends \(reservation.expiresAt.formatted(.relative(presentation: .named)))")
+                                        .font(.caption).foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             Section("Safety and support") {
                 NavigationLink("Prohibited items policy") {
                     PolicyView.prohibitedItems

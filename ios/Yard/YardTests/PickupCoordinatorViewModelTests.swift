@@ -3,37 +3,32 @@ import Testing
 @testable import Yard
 
 @MainActor
-struct ChatViewModelTests {
+struct PickupCoordinatorViewModelTests {
     @Test
-    func sendingTrimsAndAppendsMessage() async {
-        let repository = TransactionRepositoryStub()
-        let model = ChatViewModel()
-        model.draft = "  Is this available?  "
+    func missingPickupIsAnEmptyCoordinationState() async {
+        let model = PickupCoordinatorViewModel()
 
-        await model.send(conversationID: UUID(), using: repository, accessToken: "token")
+        await model.load(
+            reservationID: UUID(), using: PickupRepositoryStub(), accessToken: "token"
+        )
 
-        #expect(model.messages.last?.body == "Is this available?")
-        #expect(model.draft.isEmpty)
+        #expect(model.pickup == nil)
+        #expect(model.errorMessage == nil)
     }
 }
 
-private actor TransactionRepositoryStub: TransactionRepository {
+private actor PickupRepositoryStub: TransactionRepository {
     func reservations(accessToken: String) async throws -> [Reservation] { [] }
-    func reserve(listingID: UUID, idempotencyKey: String, accessToken: String) async throws -> Reservation {
-        fatalError()
-    }
+    func reserve(listingID: UUID, idempotencyKey: String, accessToken: String) async throws -> Reservation { fatalError() }
     func joinWaitlist(listingID: UUID, accessToken: String) async throws -> WaitlistEntry { fatalError() }
     func conversation(listingID: UUID, accessToken: String) async throws -> Conversation { fatalError() }
     func conversations(accessToken: String) async throws -> [Conversation] { [] }
     func messages(conversationID: UUID, accessToken: String) async throws -> [YardMessage] { [] }
-    func sendMessage(_ body: String, conversationID: UUID, accessToken: String) async throws -> YardMessage {
-        YardMessage(
-            id: UUID(), conversationID: conversationID, senderID: UUID(), messageType: .text,
-            body: body, createdAt: .now
-        )
-    }
+    func sendMessage(_ body: String, conversationID: UUID, accessToken: String) async throws -> YardMessage { fatalError() }
     func markRead(conversationID: UUID, accessToken: String) async throws {}
-    func pickup(reservationID: UUID, accessToken: String) async throws -> PickupSession { fatalError() }
+    func pickup(reservationID: UUID, accessToken: String) async throws -> PickupSession {
+        throw APIError.rejected(statusCode: 404, code: "pickup_not_found", message: "Not found")
+    }
     func proposePickup(_ proposal: PickupProposal, accessToken: String) async throws -> PickupSession { fatalError() }
     func acceptPickup(reservationID: UUID, accessToken: String) async throws -> PickupSession { fatalError() }
     func updatePresence(

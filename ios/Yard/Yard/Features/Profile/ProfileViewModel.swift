@@ -6,6 +6,7 @@ import Observation
 final class ProfileViewModel {
     private(set) var listings: [Listing] = []
     private(set) var conversations: [Conversation] = []
+    private(set) var reservations: [Reservation] = []
     private(set) var isLoading = true
     var errorMessage: String?
 
@@ -19,7 +20,10 @@ final class ProfileViewModel {
         do {
             async let sellerListings = selling.myListings(accessToken: accessToken)
             async let messageThreads = transactions.conversations(accessToken: accessToken)
-            (listings, conversations) = try await (sellerListings, messageThreads)
+            async let activeReservations = transactions.reservations(accessToken: accessToken)
+            (listings, conversations, reservations) = try await (
+                sellerListings, messageThreads, activeReservations
+            )
         } catch {
             errorMessage = error.transactionMessage
         }
