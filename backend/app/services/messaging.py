@@ -41,9 +41,7 @@ async def ensure_not_blocked(
     peers = [member for member in members if member != sender_id]
     if not peers:
         raise MessagingError("conversation_invalid", "This conversation has no recipient.")
-    if any(
-        [await interaction_is_blocked(session, sender_id, peer) for peer in peers]
-    ):
+    if any([await interaction_is_blocked(session, sender_id, peer) for peer in peers]):
         raise MessagingError("interaction_blocked", "Messaging is unavailable.")
 
 

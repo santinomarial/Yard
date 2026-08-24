@@ -94,9 +94,7 @@ async def test_subcategory_and_listing_age_filters_compose(client: AsyncClient) 
         params={"subcategory": "desks", "max_age_days": 7},
     )
 
-    assert [item["title"] for item in monitors.json()["items"]] == [
-        'Dell 27" Monitor'
-    ]
+    assert [item["title"] for item in monitors.json()["items"]] == ['Dell 27" Monitor']
     assert old_desks.json()["items"] == []
 
 
@@ -118,14 +116,10 @@ async def test_closest_sort_prefers_requested_zone_without_hiding_inventory(
 
 async def test_natural_search_extracts_free_and_price_constraints(client: AsyncClient) -> None:
     free_response = await client.get("/api/v1/listings", params={"query": "free desk"})
-    priced_response = await client.get(
-        "/api/v1/listings", params={"query": "monitor under 90"}
-    )
+    priced_response = await client.get("/api/v1/listings", params={"query": "monitor under 90"})
 
     assert [item["title"] for item in free_response.json()["items"]] == ["Walnut Desk"]
-    assert [item["title"] for item in priced_response.json()["items"]] == [
-        'Dell 27" Monitor'
-    ]
+    assert [item["title"] for item in priced_response.json()["items"]] == ['Dell 27" Monitor']
 
 
 async def test_listing_detail_uses_consistent_not_found_error(client: AsyncClient) -> None:

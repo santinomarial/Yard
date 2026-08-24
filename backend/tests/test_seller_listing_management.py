@@ -15,9 +15,7 @@ async def seller_fixture(session: AsyncSession) -> tuple[User, Listing]:
         harvard_email="seller-manager@harvard.edu",
         email_verified_at=datetime.now(UTC),
     )
-    category = await session.scalar(
-        select(Category).where(Category.parent_id.is_(None)).limit(1)
-    )
+    category = await session.scalar(select(Category).where(Category.parent_id.is_(None)).limit(1))
     assert category is not None
     session.add(seller)
     await session.flush()
@@ -64,12 +62,8 @@ async def test_seller_can_edit_archive_and_relist_owned_listing(
         },
         headers=headers,
     )
-    archived = await client.post(
-        f"/api/v1/listings/{listing.id}/archive", headers=headers
-    )
-    relisted = await client.post(
-        f"/api/v1/listings/{listing.id}/relist", headers=headers
-    )
+    archived = await client.post(f"/api/v1/listings/{listing.id}/archive", headers=headers)
+    relisted = await client.post(f"/api/v1/listings/{listing.id}/relist", headers=headers)
 
     assert updated.status_code == 200
     assert updated.json()["is_free"] is True
@@ -92,9 +86,7 @@ async def test_non_owner_cannot_manage_listing(
     await seeded_session.commit()
     headers = {"Authorization": f"Bearer {create_access_token(stranger.id)}"}
 
-    response = await client.post(
-        f"/api/v1/listings/{listing.id}/archive", headers=headers
-    )
+    response = await client.post(f"/api/v1/listings/{listing.id}/archive", headers=headers)
 
     assert response.status_code == 404
 
@@ -107,9 +99,7 @@ async def test_reserved_listing_cannot_be_archived(
     await seeded_session.commit()
     headers = {"Authorization": f"Bearer {create_access_token(seller.id)}"}
 
-    response = await client.post(
-        f"/api/v1/listings/{listing.id}/archive", headers=headers
-    )
+    response = await client.post(f"/api/v1/listings/{listing.id}/archive", headers=headers)
 
     assert response.status_code == 409
     assert response.json()["error"]["code"] == "listing_unavailable_locked"

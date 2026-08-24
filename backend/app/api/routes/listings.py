@@ -279,9 +279,7 @@ async def relist_listing(
                 "message": "Only a seller-archived listing with an approved photo can be relisted.",
             },
         )
-    session.add(
-        transition_listing(listing, ListingStatus.ACTIVE, user.id, "ListingRelisted")
-    )
+    session.add(transition_listing(listing, ListingStatus.ACTIVE, user.id, "ListingRelisted"))
     listing.published_at = datetime.now(UTC)
     await write_listing_embedding(session, listing)
     await match_listing(session, listing)

@@ -52,9 +52,7 @@ class S3ObjectStorage:
         internal_endpoint = (
             None if settings.environment == "production" else settings.s3_internal_endpoint
         )
-        self.public_client = session.create_client(
-            endpoint_url=public_endpoint, **client_options
-        )
+        self.public_client = session.create_client(endpoint_url=public_endpoint, **client_options)
         self.internal_client = session.create_client(
             endpoint_url=internal_endpoint, **client_options
         )

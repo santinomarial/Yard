@@ -78,15 +78,13 @@ async def attach_seller_trust(
             )
         ).all()
     )
-    completed_rows = (
-        await session.execute(
-            select(Reservation.seller_id, func.count(Reservation.id))
-            .where(
-                Reservation.seller_id.in_(seller_ids),
-                Reservation.status == ReservationStatus.COMPLETED,
-            )
-            .group_by(Reservation.seller_id)
+    completed_rows = await session.execute(
+        select(Reservation.seller_id, func.count(Reservation.id))
+        .where(
+            Reservation.seller_id.in_(seller_ids),
+            Reservation.status == ReservationStatus.COMPLETED,
         )
+        .group_by(Reservation.seller_id)
     )
     completed: dict[uuid.UUID, int] = {
         seller_id: int(count) for seller_id, count in completed_rows.all()
@@ -116,9 +114,7 @@ def _apply_filters(
     if query.category:
         statement = statement.join(Listing.category).where(Category.slug == query.category)
     if query.subcategory:
-        statement = statement.where(
-            Listing.subcategory.has(Category.slug == query.subcategory)
-        )
+        statement = statement.where(Listing.subcategory.has(Category.slug == query.subcategory))
     if query.condition:
         statement = statement.where(Listing.condition == query.condition)
     if query.free_only:
