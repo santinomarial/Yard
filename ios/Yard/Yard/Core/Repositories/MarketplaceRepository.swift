@@ -8,9 +8,11 @@ protocol MarketplaceRepository: Sendable {
 
 actor LiveMarketplaceRepository: MarketplaceRepository {
     private let client: APIClient
+    private let tokenStore: any TokenStore
 
-    init(client: APIClient) {
+    init(client: APIClient, tokenStore: any TokenStore = KeychainTokenStore()) {
         self.client = client
+        self.tokenStore = tokenStore
     }
 
     func categories() async throws -> [YardCategory] {
@@ -47,10 +49,17 @@ actor LiveMarketplaceRepository: MarketplaceRepository {
             items.append(URLQueryItem(name: "max_age_days", value: String(maximumAgeDays)))
         }
         items.append(URLQueryItem(name: "sort", value: filters.sort.rawValue))
-        return try await client.get("api/v1/listings", queryItems: items)
+        return try await client.get(
+            "api/v1/listings",
+            queryItems: items,
+            accessToken: tokenStore.load()
+        )
     }
 
     func listing(id: UUID) async throws -> Listing {
-        try await client.get("api/v1/listings/\(id.uuidString)")
+        try await client.get(
+            "api/v1/listings/\(id.uuidString)",
+            accessToken: tokenStore.load()
+        )
     }
 }

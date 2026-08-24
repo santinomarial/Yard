@@ -95,6 +95,9 @@ async def test_private_conversation_messages_read_state_and_blocking(
     await seeded_session.refresh(member)
     assert member.last_read_at is not None
 
+    saved = await client.put(f"/api/v1/saved/{listing_id}", headers=buyer_headers)
+    assert saved.status_code == 204
+
     blocked = await client.put(f"/api/v1/blocks/{buyer_id}", headers=seller_headers)
     assert blocked.status_code == 204
     rejected = await client.post(
@@ -119,6 +122,15 @@ async def test_private_conversation_messages_read_state_and_blocking(
     assert reopened.json()["error"]["code"] == "interaction_blocked"
     assert reserved.status_code == 403
     assert reserved.json()["error"]["code"] == "interaction_blocked"
+
+    anonymous_detail = await client.get(f"/api/v1/listings/{listing_id}")
+    hidden_detail = await client.get(f"/api/v1/listings/{listing_id}", headers=buyer_headers)
+    hidden_browse = await client.get("/api/v1/listings", headers=buyer_headers)
+    hidden_saved = await client.get("/api/v1/saved", headers=buyer_headers)
+    assert anonymous_detail.status_code == 200
+    assert hidden_detail.status_code == 404
+    assert str(listing_id) not in {item["id"] for item in hidden_browse.json()["items"]}
+    assert str(listing_id) not in {item["id"] for item in hidden_saved.json()}
 
 
 async def test_seller_cannot_open_buyer_conversation(

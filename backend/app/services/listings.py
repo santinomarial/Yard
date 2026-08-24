@@ -103,9 +103,15 @@ async def attach_seller_trust(
 
 
 def _apply_filters(
-    statement: Select[tuple[Listing]], query: ListingQuery, *, include_query_text: bool = True
+    statement: Select[tuple[Listing]],
+    query: ListingQuery,
+    *,
+    include_query_text: bool = True,
+    hidden_seller_ids: set[uuid.UUID] | None = None,
 ) -> Select[tuple[Listing]]:
     statement = statement.where(Listing.status == ListingStatus.ACTIVE)
+    if hidden_seller_ids:
+        statement = statement.where(Listing.seller_id.not_in(hidden_seller_ids))
     if query.query and include_query_text:
         pattern = f"%{query.query.strip()}%"
         statement = statement.where(
@@ -169,7 +175,11 @@ async def hybrid_candidate_ids(session: AsyncSession, query: str) -> list[uuid.U
     return [row[0] for row in rows]
 
 
-async def search_listings(session: AsyncSession, query: ListingQuery) -> ListingPage:
+async def search_listings(
+    session: AsyncSession,
+    query: ListingQuery,
+    hidden_seller_ids: set[uuid.UUID] | None = None,
+) -> ListingPage:
     ranked_ids: list[uuid.UUID] | None = None
     is_postgres = session.bind is not None and session.bind.dialect.name == "postgresql"
     if query.query and is_postgres:
@@ -178,8 +188,18 @@ async def search_listings(session: AsyncSession, query: ListingQuery) -> Listing
             return ListingPage(items=[], total=0, limit=query.limit, offset=query.offset)
 
     include_query_text = ranked_ids is None
-    filtered = _apply_filters(select(Listing), query, include_query_text=include_query_text)
-    count_source = _apply_filters(select(Listing), query, include_query_text=include_query_text)
+    filtered = _apply_filters(
+        select(Listing),
+        query,
+        include_query_text=include_query_text,
+        hidden_seller_ids=hidden_seller_ids,
+    )
+    count_source = _apply_filters(
+        select(Listing),
+        query,
+        include_query_text=include_query_text,
+        hidden_seller_ids=hidden_seller_ids,
+    )
     if ranked_ids is not None:
         filtered = filtered.where(Listing.id.in_(ranked_ids))
         count_source = count_source.where(Listing.id.in_(ranked_ids))

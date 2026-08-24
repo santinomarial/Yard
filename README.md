@@ -87,7 +87,6 @@ The app includes an original icon, privacy manifest, permission descriptions, ac
 - Run and fix the native build/unit/UI suite on an Xcode 26 runner and complete device accessibility QA.
 - Activate the prepared GitHub Actions workflow with a GitHub credential that has `workflow` scope.
 - Provision a staging AWS account, restore-test the database, and exercise APNs/SES/Rekognition end to end.
-- Add optional authenticated discovery filtering so blocked sellers are also excluded from browse results.
 - Move synchronous publication moderation/matching and verification email delivery onto durable retryable jobs as traffic warrants.
 
 No production users, transactions, uptime, or unmeasured performance claims are made. The recorded local k6 baseline and hardware conditions are in [load results](load/results/local-baseline.md).

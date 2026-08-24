@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.database import get_session
 from app.core.metrics import metrics
-from app.core.security import CurrentUser
+from app.core.security import CurrentUser, OptionalUser
 from app.models.category import Category
 from app.models.listing import Listing, ListingCondition, ListingStatus
 from app.models.listing_image import ListingImage, ListingImageStatus
@@ -28,6 +28,7 @@ from app.schemas.listing_image import (
     ListingImageUploadRequest,
 )
 from app.services.analytics import record_event
+from app.services.blocks import blocked_user_ids, interaction_is_blocked
 from app.services.buyer import match_listing
 from app.services.embeddings import write_listing_embedding
 from app.services.image_moderation import (
@@ -550,6 +551,7 @@ async def delete_image(
 
 @router.get("", response_model=ListingPage)
 async def list_listings(
+    user: OptionalUser,
     query: str | None = Query(default=None, max_length=120),
     category: str | None = None,
     subcategory: str | None = None,
@@ -585,7 +587,8 @@ async def list_listings(
         offset=offset,
     )
     search_started = time.perf_counter()
-    page = await search_listings(session, filters)
+    hidden_sellers = await blocked_user_ids(session, user.id) if user else None
+    page = await search_listings(session, filters, hidden_sellers)
     metrics.observe(
         "search_latency_seconds",
         time.perf_counter() - search_started,
@@ -603,10 +606,14 @@ async def list_listings(
 
 @router.get("/{listing_id}", response_model=ListingRead)
 async def listing_detail(
-    listing_id: uuid.UUID, session: AsyncSession = Depends(get_session)
+    listing_id: uuid.UUID,
+    user: OptionalUser,
+    session: AsyncSession = Depends(get_session),
 ) -> ListingRead:
     listing = await get_active_listing(session, listing_id)
-    if listing is None:
+    if listing is None or (
+        user and await interaction_is_blocked(session, user.id, listing.seller_id)
+    ):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"code": "listing_not_found", "message": "This listing is unavailable."},

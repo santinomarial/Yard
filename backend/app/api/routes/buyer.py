@@ -16,6 +16,7 @@ from app.schemas.buyer import (
 )
 from app.schemas.listing import ListingRead
 from app.services.analytics import record_event
+from app.services.blocks import blocked_user_ids, interaction_is_blocked
 from app.services.buyer import match_intent
 from app.services.listings import attach_seller_trust, listing_read_model
 from app.services.recommendations import recommend_for_user
@@ -27,12 +28,16 @@ router = APIRouter()
 async def saved_listings(
     user: CurrentUser, session: AsyncSession = Depends(get_session)
 ) -> list[ListingRead]:
-    rows = await session.scalars(
+    hidden_sellers = await blocked_user_ids(session, user.id)
+    statement = (
         select(Listing)
         .join(SavedListing, SavedListing.listing_id == Listing.id)
         .where(SavedListing.user_id == user.id, Listing.status == ListingStatus.ACTIVE)
         .order_by(SavedListing.created_at.desc())
     )
+    if hidden_sellers:
+        statement = statement.where(Listing.seller_id.not_in(hidden_sellers))
+    rows = await session.scalars(statement)
     listings = [listing_read_model(item) for item in rows.unique().all()]
     return await attach_seller_trust(session, listings)
 
@@ -45,6 +50,8 @@ async def save_listing(
 ) -> Response:
     listing = await session.get(Listing, listing_id)
     if listing is None or listing.status != ListingStatus.ACTIVE:
+        raise HTTPException(status_code=404, detail="Not found")
+    if await interaction_is_blocked(session, user.id, listing.seller_id):
         raise HTTPException(status_code=404, detail="Not found")
     exists = await session.get(SavedListing, (user.id, listing_id))
     if exists is None:
@@ -124,14 +131,16 @@ async def intent_matches(
     )
     if intent is None:
         raise HTTPException(status_code=404, detail="Not found")
-    pairs = (
-        await session.execute(
-            select(ListingMatch, Listing)
-            .join(Listing, Listing.id == ListingMatch.listing_id)
-            .where(ListingMatch.intent_id == intent.id, Listing.status == ListingStatus.ACTIVE)
-            .order_by(ListingMatch.score.desc())
-        )
-    ).all()
+    hidden_sellers = await blocked_user_ids(session, user.id)
+    statement = (
+        select(ListingMatch, Listing)
+        .join(Listing, Listing.id == ListingMatch.listing_id)
+        .where(ListingMatch.intent_id == intent.id, Listing.status == ListingStatus.ACTIVE)
+        .order_by(ListingMatch.score.desc())
+    )
+    if hidden_sellers:
+        statement = statement.where(Listing.seller_id.not_in(hidden_sellers))
+    pairs = (await session.execute(statement)).all()
     results = [
         ListingMatchRead(
             id=match.id,
@@ -152,6 +161,9 @@ async def recommendations(
     session: AsyncSession = Depends(get_session),
 ) -> list[RecommendationRead]:
     items = await recommend_for_user(session, user.id, max(1, min(limit, 50)))
+    hidden_sellers = await blocked_user_ids(session, user.id)
+    if hidden_sellers:
+        items = [item for item in items if item.listing.seller_id not in hidden_sellers]
     results = [
         RecommendationRead(
             score=item.score,

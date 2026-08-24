@@ -16,6 +16,6 @@ Removal atomically cancels active reservations and pickups, removes waitlist off
 
 ## Blocking
 
-Blocks are directional records but interaction denial is symmetric. The server enforces the relationship for new and existing messages, new conversations, individual reservations, waitlist joins/claims/promotions, and bundle reservations. A blocked waitlist member is skipped atomically. Public anonymous browse remains visible by design; authenticated discovery exclusion is documented as remaining work.
+Blocks are directional records but interaction denial is symmetric. The server enforces the relationship for new and existing messages, new conversations, individual reservations, waitlist joins/claims/promotions, and bundle reservations. A blocked waitlist member is skipped atomically. Authenticated browse, detail, saved listings, intent matches, and recommendations exclude blocked users in either direction. Public anonymous browse remains visible by design.
 
 Policies are maintained in [prohibited items](prohibited-items.md), [community guidelines](community-guidelines.md), and [terms](terms-of-service.md). Support is surfaced in-app and in App Store metadata.

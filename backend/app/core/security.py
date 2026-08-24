@@ -13,6 +13,7 @@ from app.core.database import get_session
 from app.models.user import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/apple")
+optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/apple", auto_error=False)
 settings = get_settings()
 
 
@@ -58,6 +59,18 @@ async def current_user(
 
 
 CurrentUser = Annotated[User, Depends(current_user)]
+
+
+async def optional_current_user(
+    token: Annotated[str | None, Depends(optional_oauth2_scheme)],
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> User | None:
+    if token is None:
+        return None
+    return await current_user(token, session)
+
+
+OptionalUser = Annotated[User | None, Depends(optional_current_user)]
 
 
 async def current_admin(user: CurrentUser) -> User:

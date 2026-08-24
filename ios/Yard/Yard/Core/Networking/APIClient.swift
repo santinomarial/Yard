@@ -30,9 +30,12 @@ actor APIClient {
 
     func get<Response: Decodable & Sendable>(
         _ path: String,
-        queryItems: [URLQueryItem] = []
+        queryItems: [URLQueryItem] = [],
+        accessToken: String? = nil
     ) async throws -> Response {
-        try await request("GET", path: path, queryItems: queryItems)
+        try await request(
+            "GET", path: path, queryItems: queryItems, accessToken: accessToken
+        )
     }
 
     func request<Response: Decodable & Sendable, Body: Encodable & Sendable>(
