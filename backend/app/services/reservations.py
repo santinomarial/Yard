@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.listing import Listing, ListingStatus
 from app.models.marketplace_event import ListingEvent
+from app.models.pickup import PickupSession, PickupStatus
 from app.models.reservation import (
     Reservation,
     ReservationStatus,
@@ -141,6 +142,14 @@ async def cancel_reservation(
         if listing is None or listing.status != ListingStatus.RESERVED:
             raise ReservationError("stale_listing_state", "The listing state changed.")
         reservation.status = ReservationStatus.CANCELLED
+        pickup = await session.scalar(
+            select(PickupSession)
+            .where(PickupSession.reservation_id == reservation.id)
+            .with_for_update()
+        )
+        if pickup and pickup.status in {PickupStatus.PROPOSED, PickupStatus.SCHEDULED}:
+            pickup.status = PickupStatus.CANCELLED
+            pickup.cancelled_at = datetime.now(UTC)
         await release_or_promote(session, listing, actor_id, "ReservationCancelled")
     return reservation
 
@@ -167,6 +176,14 @@ async def expire_due_reservations(session: AsyncSession, limit: int = 100) -> in
             if listing is None or listing.status != ListingStatus.RESERVED:
                 continue
             reservation.status = ReservationStatus.EXPIRED
+            pickup = await session.scalar(
+                select(PickupSession)
+                .where(PickupSession.reservation_id == reservation.id)
+                .with_for_update()
+            )
+            if pickup and pickup.status in {PickupStatus.PROPOSED, PickupStatus.SCHEDULED}:
+                pickup.status = PickupStatus.CANCELLED
+                pickup.cancelled_at = datetime.now(UTC)
             await release_or_promote(session, listing, reservation.buyer_id, "ReservationExpired")
             expired += 1
     return expired

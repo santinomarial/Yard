@@ -8,6 +8,7 @@ from app.api.routes import (
     health,
     listings,
     messaging,
+    pickups,
     reservations,
 )
 
@@ -20,3 +21,4 @@ api_router.include_router(reservations.router, prefix="/reservations", tags=["re
 api_router.include_router(buyer.router, tags=["buyer"])
 api_router.include_router(bundles.router, prefix="/bundles", tags=["bundles"])
 api_router.include_router(messaging.router, tags=["messaging"])
+api_router.include_router(pickups.router, prefix="/pickups", tags=["pickups"])

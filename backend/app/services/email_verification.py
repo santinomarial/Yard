@@ -110,4 +110,5 @@ async def confirm_verification(
     verification.consumed_at = now
     user.harvard_email = normalized
     user.email_verified_at = now
+    session.add(user)
     await session.commit()
