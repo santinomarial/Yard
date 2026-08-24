@@ -33,6 +33,9 @@ class Reservation(Base):
     listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("listings.id"), index=True)
     buyer_id: Mapped[uuid.UUID] = mapped_column(index=True)
     seller_id: Mapped[uuid.UUID] = mapped_column(index=True)
+    bundle_reservation_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("bundle_reservations.id"), nullable=True, index=True
+    )
     status: Mapped[ReservationStatus] = mapped_column(
         Enum(ReservationStatus, name="reservation_status", native_enum=False), index=True
     )

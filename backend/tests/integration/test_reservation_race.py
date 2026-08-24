@@ -7,6 +7,8 @@ from sqlalchemy import select
 
 from app.core.database import SessionFactory
 from app.models import (
+    Bundle,
+    BundleItem,
     Category,
     Listing,
     ListingCondition,
@@ -16,6 +18,7 @@ from app.models import (
     WaitlistEntry,
     WaitlistStatus,
 )
+from app.services.bundles import reserve_bundle
 from app.services.reservations import (
     ReservationError,
     cancel_reservation,
@@ -128,3 +131,68 @@ async def test_waitlist_promotion_keeps_inventory_from_direct_buyers() -> None:
     async with SessionFactory() as session:
         claimed = await claim_waitlist_offer(session, first_in_line.id, buyers[1])
         assert claimed.buyer_id == buyers[1]
+
+
+async def test_bundle_and_individual_reservation_cannot_double_allocate() -> None:
+    async with SessionFactory() as session, session.begin():
+        category = Category(
+            name=f"Bundle {uuid.uuid4().hex[:8]}",
+            slug=f"bundle-{uuid.uuid4().hex}",
+            symbol="shippingbox",
+        )
+        seller = User(display_name="Bundle Seller", email_verified_at=datetime.now(UTC))
+        bundle_buyer = User(display_name="Bundle Buyer", email_verified_at=datetime.now(UTC))
+        item_buyer = User(display_name="Item Buyer", email_verified_at=datetime.now(UTC))
+        session.add_all([category, seller, bundle_buyer, item_buyer])
+        await session.flush()
+        listings = [
+            Listing(
+                seller_id=seller.id,
+                title=f"Bundle item {index}",
+                description="Atomic bundle race fixture.",
+                category=category,
+                price_cents=3_000,
+                is_free=False,
+                condition=ListingCondition.GOOD,
+                status=ListingStatus.ACTIVE,
+                pickup_zone="Harvard Square",
+            )
+            for index in range(2)
+        ]
+        session.add_all(listings)
+        await session.flush()
+        bundle = Bundle(id=uuid.uuid4(), seller_id=seller.id, title="Desk setup", price_cents=5_000)
+        session.add(bundle)
+        session.add_all(
+            [BundleItem(bundle_id=bundle.id, listing_id=listing.id) for listing in listings]
+        )
+        await session.flush()
+        bundle_id = bundle.id
+        listing_ids = [listing.id for listing in listings]
+        bundle_buyer_id = bundle_buyer.id
+        item_buyer_id = item_buyer.id
+
+    async def bundle_attempt() -> str:
+        async with SessionFactory() as session:
+            try:
+                await reserve_bundle(
+                    session, bundle_id, bundle_buyer_id, f"bundle-race-{uuid.uuid4()}"
+                )
+                return "bundle"
+            except ReservationError:
+                return "conflict"
+
+    results = await asyncio.gather(
+        bundle_attempt(), attempt(listing_ids[0], item_buyer_id, f"item-race-{uuid.uuid4()}")
+    )
+    assert sum(result in {"bundle"} or result.startswith("success") for result in results) == 1
+    async with SessionFactory() as session:
+        rows = list(
+            (
+                await session.scalars(
+                    select(Reservation).where(Reservation.listing_id.in_(listing_ids))
+                )
+            ).all()
+        )
+        assert len(rows) in {1, 2}
+        assert len({row.bundle_reservation_id is not None for row in rows}) == 1
