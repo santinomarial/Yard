@@ -24,11 +24,7 @@ struct RootTabView: View {
             .tabItem { Label("Saved", systemImage: "bookmark") }
 
             NavigationStack {
-                FeaturePlaceholder(
-                    title: "Profile",
-                    message: "Manage your listings, account, and privacy.",
-                    symbol: "person.crop.circle"
-                )
+                ProfileView()
             }
             .tabItem { Label("Profile", systemImage: "person.crop.circle") }
         }

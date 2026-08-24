@@ -1,6 +1,7 @@
 import Foundation
 
 protocol SellingRepository: Sendable {
+    func myListings(accessToken: String) async throws -> [Listing]
     func publish(
         draft: ListingDraftPayload,
         photos: [PreparedListingPhoto],
@@ -14,6 +15,10 @@ actor LiveSellingRepository: SellingRepository {
 
     init(client: APIClient) {
         self.client = client
+    }
+
+    func myListings(accessToken: String) async throws -> [Listing] {
+        try await client.request("GET", path: "api/v1/listings/mine", accessToken: accessToken)
     }
 
     func publish(
@@ -65,6 +70,8 @@ actor LiveSellingRepository: SellingRepository {
 }
 
 actor PreviewSellingRepository: SellingRepository {
+    func myListings(accessToken: String) async throws -> [Listing] { Listing.previewListings }
+
     func publish(
         draft: ListingDraftPayload,
         photos: [PreparedListingPhoto],

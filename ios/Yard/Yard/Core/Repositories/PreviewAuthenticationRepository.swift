@@ -31,4 +31,14 @@ struct PreviewAuthenticationRepository: AuthenticationRepository {
     func confirmVerification(
         email: String, code: String, accessToken: String
     ) async throws -> YardUser { user }
+
+    func updateProfile(displayName: String, accessToken: String) async throws -> YardUser {
+        YardUser(
+            id: user.id, displayName: displayName,
+            harvardEmailVerified: user.harvardEmailVerified,
+            memberSince: user.memberSince, suspended: user.suspended, admin: user.admin
+        )
+    }
+
+    func deleteAccount(accessToken: String) async throws {}
 }

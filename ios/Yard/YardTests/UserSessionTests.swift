@@ -31,6 +31,20 @@ struct UserSessionTests {
         #expect(store.token == "test-token")
         #expect(session.phase == .signedIn(repository.user))
     }
+
+    @Test
+    func accountDeletionClearsLocalCredentials() async {
+        let store = RecordingTokenStore(token: "saved-token")
+        let repository = StubAuthenticationRepository()
+        let session = UserSession(repository: repository, tokenStore: store)
+        await session.restore()
+
+        let deleted = await session.deleteAccount()
+
+        #expect(deleted)
+        #expect(store.token == nil)
+        #expect(session.phase == .signedOut)
+    }
 }
 
 private final class RecordingTokenStore: TokenStore, @unchecked Sendable {
@@ -76,4 +90,14 @@ private struct StubAuthenticationRepository: AuthenticationRepository {
     func confirmVerification(
         email: String, code: String, accessToken: String
     ) async throws -> YardUser { user }
+
+    func updateProfile(displayName: String, accessToken: String) async throws -> YardUser {
+        YardUser(
+            id: user.id, displayName: displayName,
+            harvardEmailVerified: user.harvardEmailVerified,
+            memberSince: user.memberSince, suspended: false, admin: false
+        )
+    }
+
+    func deleteAccount(accessToken: String) async throws {}
 }

@@ -25,6 +25,19 @@ enum ListingStatus: String, Codable, Sendable {
     case archived
     case rejected
     case removed
+
+    var displayName: String {
+        switch self {
+        case .draft: "Draft"
+        case .pendingModeration: "In review"
+        case .active: "Active"
+        case .reserved: "Reserved"
+        case .sold: "Sold"
+        case .archived: "Archived"
+        case .rejected: "Needs changes"
+        case .removed: "Removed"
+        }
+    }
 }
 
 struct Listing: Codable, Identifiable, Hashable, Sendable {

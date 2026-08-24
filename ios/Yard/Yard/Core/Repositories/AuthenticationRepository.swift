@@ -9,6 +9,8 @@ protocol AuthenticationRepository: Sendable {
         -> VerificationRequestResponse
     func confirmVerification(email: String, code: String, accessToken: String) async throws
         -> YardUser
+    func updateProfile(displayName: String, accessToken: String) async throws -> YardUser
+    func deleteAccount(accessToken: String) async throws
 }
 
 actor LiveAuthenticationRepository: AuthenticationRepository {
@@ -61,6 +63,21 @@ actor LiveAuthenticationRepository: AuthenticationRepository {
             accessToken: accessToken
         )
     }
+
+    func updateProfile(displayName: String, accessToken: String) async throws -> YardUser {
+        try await client.request(
+            "PATCH",
+            path: "api/v1/auth/profile",
+            body: ProfileUpdateBody(displayName: displayName),
+            accessToken: accessToken
+        )
+    }
+
+    func deleteAccount(accessToken: String) async throws {
+        try await client.requestVoid(
+            "DELETE", path: "api/v1/auth/account", accessToken: accessToken
+        )
+    }
 }
 
 private struct DevelopmentSignInBody: Encodable, Sendable {
@@ -80,4 +97,8 @@ private struct VerificationEmailBody: Encodable, Sendable {
 private struct VerificationCodeBody: Encodable, Sendable {
     let email: String
     let code: String
+}
+
+private struct ProfileUpdateBody: Encodable, Sendable {
+    let displayName: String
 }

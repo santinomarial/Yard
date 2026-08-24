@@ -18,6 +18,11 @@ final class UserSession {
     private(set) var errorMessage: String?
     private(set) var developmentCode: String?
 
+    var currentUser: YardUser? {
+        guard case let .signedIn(user) = phase else { return nil }
+        return user
+    }
+
     init(
         repository: any AuthenticationRepository,
         tokenStore: any TokenStore,
@@ -95,6 +100,40 @@ final class UserSession {
         developmentCode = nil
         errorMessage = nil
         phase = .signedOut
+    }
+
+    func updateProfile(displayName: String) async -> Bool {
+        guard let accessToken else { return false }
+        isWorking = true
+        errorMessage = nil
+        do {
+            let user = try await repository.updateProfile(
+                displayName: displayName, accessToken: accessToken
+            )
+            phase = .signedIn(user)
+            isWorking = false
+            return true
+        } catch {
+            errorMessage = error.userFacingMessage
+            isWorking = false
+            return false
+        }
+    }
+
+    func deleteAccount() async -> Bool {
+        guard let accessToken else { return false }
+        isWorking = true
+        errorMessage = nil
+        do {
+            try await repository.deleteAccount(accessToken: accessToken)
+            signOut()
+            isWorking = false
+            return true
+        } catch {
+            errorMessage = error.userFacingMessage
+            isWorking = false
+            return false
+        }
     }
 
     func clearError() {
