@@ -1,0 +1,8 @@
+aws_region     = "us-east-1"
+environment    = "production"
+api_image      = "123456789012.dkr.ecr.us-east-1.amazonaws.com/yard-api@sha256:replace-me"
+worker_image   = "123456789012.dkr.ecr.us-east-1.amazonaws.com/yard-worker@sha256:replace-me"
+admin_image    = "123456789012.dkr.ecr.us-east-1.amazonaws.com/yard-admin@sha256:replace-me"
+ses_from_email = "verify@example.com"
+cors_origins   = ["https://admin.example.com"]
+certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/replace-me"

@@ -1,0 +1,21 @@
+# Yard AWS infrastructure
+
+This Terraform describes a small production deployment without creating anything automatically. It uses two availability zones, ECS/Fargate for the API, worker, and admin site, RDS PostgreSQL 16, encrypted ElastiCache Redis, a private S3 asset bucket, Rekognition/SES IAM permissions, CloudWatch logs, and Secrets Manager.
+
+## Before applying
+
+1. Build and push immutable API, worker, and admin images to ECR. Build the admin image with `NEXT_PUBLIC_YARD_API_URL` set to the public HTTPS API `/api/v1` URL because browser-visible Next.js variables are compiled into the image.
+2. Verify the SES sender identity and request production SES access if needed.
+3. Copy `terraform.tfvars.example` to an untracked `terraform.tfvars` and pin the image digests.
+4. Supply an ACM certificate. The HTTP-only listener is intended only for initial bootstrap; production clients must use HTTPS.
+5. Run `terraform init`, `terraform plan -out yard.tfplan`, review the full plan, then explicitly run `terraform apply yard.tfplan`.
+6. Populate the application Secrets Manager value with strong `access_token_secret` and `verification_pepper` values plus APNs credentials. Convert the RDS-managed JSON credentials into the SQLAlchemy `YARD_DATABASE_URL` in the deployment pipeline or an entrypoint; the task definition intentionally does not put credentials in Terraform state.
+7. Run `alembic upgrade head` as a one-off ECS task before shifting traffic.
+
+Terraform state must live in a separately bootstrapped encrypted remote backend with locking. Commit the provider lock file, but never commit state, variable files, plan files, APNs keys, or exported secrets.
+
+## Low-traffic deployment considerations
+
+The defaults prioritize a student-project budget: one small task per service, a `db.t4g.micro` database, a single Redis node, one NAT gateway, and no multi-AZ database. That is suitable for controlled beta traffic, not a high-availability claim. For launch, budget for database Multi-AZ, a second NAT gateway, Redis failover, ECS autoscaling, AWS WAF, CloudFront or signed image delivery, alarms, and tested restore/runbook procedures. Cost varies by region and usage; review the AWS pricing calculator before applying.
+
+The asset bucket is private. The current API can issue S3 upload URLs, but production image delivery should use short-lived signed reads or a private CloudFront distribution rather than making the bucket public.
