@@ -51,7 +51,6 @@ class Message(Base):
 
 class Block(Base):
     __tablename__ = "blocks"
-    __table_args__ = (UniqueConstraint("blocker_id", "blocked_id", name="uq_block_pair"),)
     blocker_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
     blocked_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)

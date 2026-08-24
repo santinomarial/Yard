@@ -20,7 +20,6 @@ from app.models.listing import ListingCondition, utc_now
 
 class SavedListing(Base):
     __tablename__ = "saved_listings"
-    __table_args__ = (UniqueConstraint("user_id", "listing_id", name="uq_saved_user_listing"),)
     user_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
     listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("listings.id"), primary_key=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)

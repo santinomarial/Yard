@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import JSON, Boolean, DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, Enum, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -31,10 +31,14 @@ class DeviceToken(Base):
 
 class NotificationOutbox(Base):
     __tablename__ = "notification_outbox"
+    __table_args__ = (
+        Index("ix_notification_outbox_type", "notification_type"),
+        Index("ix_notification_outbox_next_attempt", "next_attempt_at"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), index=True)
-    notification_type: Mapped[str] = mapped_column(String(80), index=True)
+    notification_type: Mapped[str] = mapped_column(String(80))
     title: Mapped[str] = mapped_column(String(140))
     body: Mapped[str] = mapped_column(String(500))
     deep_link: Mapped[str | None] = mapped_column(String(500), nullable=True)
@@ -46,9 +50,7 @@ class NotificationOutbox(Base):
         index=True,
     )
     attempts: Mapped[int] = mapped_column(Integer, default=0)
-    next_attempt_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utc_now, index=True
-    )
+    next_attempt_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
     sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
