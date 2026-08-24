@@ -9,6 +9,7 @@ from app.core.security import CurrentUser
 from app.models.reservation import Reservation
 from app.schemas.reservation import ReservationCreate, ReservationRead, WaitlistRead
 from app.services.analytics import record_event
+from app.services.notifications import enqueue_notification
 from app.services.reservations import (
     ReservationError,
     cancel_reservation,
@@ -68,6 +69,24 @@ async def create_reservation(
         entity_type="reservation",
         entity_id=reservation.id,
         properties={"listing_id": str(reservation.listing_id)},
+    )
+    await enqueue_notification(
+        session,
+        user_id=reservation.buyer_id,
+        notification_type="reservation_confirmed",
+        title="Item reserved",
+        body="Your reservation is confirmed. Coordinate a public pickup with the seller.",
+        idempotency_key=f"reservation-confirmed:{reservation.id}:buyer",
+        deep_link=f"yard://reservations/{reservation.id}",
+    )
+    await enqueue_notification(
+        session,
+        user_id=reservation.seller_id,
+        notification_type="seller_response",
+        title="Your item was reserved",
+        body="A buyer is ready to coordinate pickup.",
+        idempotency_key=f"reservation-confirmed:{reservation.id}:seller",
+        deep_link=f"yard://reservations/{reservation.id}",
     )
     await session.commit()
     return ReservationRead.model_validate(reservation)

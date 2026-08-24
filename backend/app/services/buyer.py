@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.buyer import BuyingIntent, ListingMatch
 from app.models.listing import Listing, ListingStatus
 from app.services.matching import IntentFeatures, score_match
+from app.services.notifications import enqueue_notification
 
 MATCH_THRESHOLD = 0.55
 
@@ -56,6 +57,15 @@ async def match_listing(session: AsyncSession, listing: Listing) -> int:
                     score=score.total,
                     score_components=score.components,
                 )
+            )
+            await enqueue_notification(
+                session,
+                user_id=intent.buyer_id,
+                notification_type="intent_match",
+                title="New wanted-item match",
+                body=f"{listing.title} matches your alert for {intent.query}.",
+                idempotency_key=f"intent-match:{intent.id}:{listing.id}",
+                deep_link=f"yard://listings/{listing.id}",
             )
             created += 1
     return created

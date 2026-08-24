@@ -34,6 +34,7 @@ from app.services.listings import (
     search_listings,
 )
 from app.services.moderation import DeterministicDevelopmentModeration
+from app.services.notifications import enqueue_notification
 from app.services.object_storage import ObjectStorage, get_object_storage
 
 router = APIRouter()
@@ -227,6 +228,19 @@ async def submit_listing(
     if decision.approved:
         await write_listing_embedding(session, listing)
         await match_listing(session, listing)
+    await enqueue_notification(
+        session,
+        user_id=user.id,
+        notification_type="listing_moderation_result",
+        title="Listing approved" if decision.approved else "Listing needs changes",
+        body=(
+            "Your listing is now visible in Yard."
+            if decision.approved
+            else "Review the moderation result before submitting again."
+        ),
+        idempotency_key=f"listing-moderation:{listing.id}:{listing.version}",
+        deep_link=f"yard://listings/{listing.id}",
+    )
     await session.commit()
     return listing_read_model(listing)
 

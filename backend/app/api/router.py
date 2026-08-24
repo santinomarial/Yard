@@ -10,6 +10,7 @@ from app.api.routes import (
     health,
     listings,
     messaging,
+    notifications,
     pickups,
     reports,
     reservations,
@@ -28,3 +29,4 @@ api_router.include_router(pickups.router, prefix="/pickups", tags=["pickups"])
 api_router.include_router(reports.router, prefix="/reports", tags=["reports"])
 api_router.include_router(admin.router, prefix="/admin", tags=["administration"])
 api_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
+api_router.include_router(notifications.router, prefix="/notifications", tags=["notifications"])

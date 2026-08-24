@@ -5,6 +5,7 @@ from app.models.listing import Listing, ListingCondition, ListingStatus
 from app.models.listing_image import ListingImage, ListingImageStatus
 from app.models.marketplace_event import ListingEvent, ModerationResult
 from app.models.messaging import Block, Conversation, ConversationMember, Message, MessageType
+from app.models.notification import DeviceToken, NotificationOutbox, NotificationStatus
 from app.models.pickup import ArrivalStatus, PickupSession, PickupStatus
 from app.models.report import (
     AdminAction,
@@ -30,6 +31,7 @@ __all__ = [
     "Category",
     "Conversation",
     "ConversationMember",
+    "DeviceToken",
     "EmailVerification",
     "Listing",
     "ListingCondition",
@@ -41,6 +43,8 @@ __all__ = [
     "ModerationResult",
     "Message",
     "MessageType",
+    "NotificationOutbox",
+    "NotificationStatus",
     "PickupSession",
     "PickupStatus",
     "Reservation",

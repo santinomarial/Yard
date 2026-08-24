@@ -21,6 +21,7 @@ from app.schemas.messaging import (
     MessageRead,
 )
 from app.services.messaging import MessagingError, member_ids, persist_message, require_member
+from app.services.notifications import enqueue_notification
 
 router = APIRouter()
 
@@ -127,6 +128,20 @@ async def send_message(
         message = await persist_message(session, conversation_id, user.id, payload.body)
     except MessagingError as error:
         raise messaging_error(error) from None
+    recipients = [
+        member for member in await member_ids(session, conversation_id) if member != user.id
+    ]
+    for recipient in recipients:
+        await enqueue_notification(
+            session,
+            user_id=recipient,
+            notification_type="new_message",
+            title="New Yard message",
+            body=message.body[:180],
+            idempotency_key=f"new-message:{message.id}:{recipient}",
+            deep_link=f"yard://conversations/{conversation_id}",
+        )
+    await session.commit()
     await sockets.broadcast(
         conversation_id, MessageRead.model_validate(message).model_dump(mode="json")
     )
@@ -206,6 +221,22 @@ async def conversation_socket(websocket: WebSocket, conversation_id: uuid.UUID) 
             payload = MessageCreate.model_validate_json(await websocket.receive_text())
             async with SessionFactory() as session:
                 message = await persist_message(session, conversation_id, user_id, payload.body)
+                recipients = [
+                    member
+                    for member in await member_ids(session, conversation_id)
+                    if member != user_id
+                ]
+                for recipient in recipients:
+                    await enqueue_notification(
+                        session,
+                        user_id=recipient,
+                        notification_type="new_message",
+                        title="New Yard message",
+                        body=message.body[:180],
+                        idempotency_key=f"new-message:{message.id}:{recipient}",
+                        deep_link=f"yard://conversations/{conversation_id}",
+                    )
+                await session.commit()
             await sockets.broadcast(
                 conversation_id, MessageRead.model_validate(message).model_dump(mode="json")
             )

@@ -99,6 +99,24 @@ services:
     depends_on:
       - backend
 
+  worker:
+    build:
+      context: ./backend
+    environment:
+      YARD_ENVIRONMENT: development
+      YARD_DATABASE_URL: postgresql+asyncpg://yard:yard@postgres:5432/yard
+      YARD_REDIS_URL: redis://redis:6379/0
+      YARD_RUFF_CACHE_DIR: /tmp/yard-ruff-cache
+      YARD_MYPY_CACHE_DIR: /tmp/yard-mypy-cache
+    command: ["python", "-m", "app.worker"]
+    volumes:
+      - ./backend:/app:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
 volumes:
   yard_postgres:
   yard_redis:

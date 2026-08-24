@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     asset_base_url: str = "http://localhost:9000/yard"
     upload_expiration_seconds: int = 900
     analytics_enabled: bool = True
+    apns_team_id: str | None = None
+    apns_key_id: str | None = None
+    apns_private_key: str | None = None
+    apns_bundle_id: str = "com.santinomarial.yard"
+    apns_sandbox: bool = True
 
 
 @lru_cache
