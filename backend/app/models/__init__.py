@@ -1,4 +1,13 @@
 from app.models.category import Category
 from app.models.listing import Listing, ListingCondition, ListingStatus
+from app.models.user import AppleIdentity, EmailVerification, User
 
-__all__ = ["Category", "Listing", "ListingCondition", "ListingStatus"]
+__all__ = [
+    "AppleIdentity",
+    "Category",
+    "EmailVerification",
+    "Listing",
+    "ListingCondition",
+    "ListingStatus",
+    "User",
+]

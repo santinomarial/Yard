@@ -14,6 +14,13 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     api_prefix: str = "/api/v1"
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
+    apple_audience: str = "com.santinomarial.yard"
+    access_token_secret: str = "development-only-access-secret-change-me"
+    verification_pepper: str = "development-only-verification-pepper-change-me"
+    allowed_harvard_domains: list[str] = Field(
+        default_factory=lambda: ["harvard.edu", "college.harvard.edu", "g.harvard.edu"]
+    )
+    verification_code_minutes: int = 10
 
 
 @lru_cache
