@@ -11,7 +11,15 @@ struct YardApp: App {
             AuthenticationGate()
                 .environment(environment)
                 .tint(YardTheme.Colors.crimson)
-                .modelContainer(for: [ListingDraftRecord.self, DraftPhotoRecord.self])
+                .modelContainer(for: [
+                    ListingDraftRecord.self,
+                    DraftPhotoRecord.self,
+                    CachedListingRecord.self,
+                    CachedCategoryRecord.self,
+                    FavoriteRecord.self,
+                    PendingFavoriteMutation.self,
+                    CachedConversationRecord.self,
+                ])
         }
     }
 }

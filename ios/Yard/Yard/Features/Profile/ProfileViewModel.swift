@@ -10,6 +10,11 @@ final class ProfileViewModel {
     private(set) var isLoading = true
     var errorMessage: String?
 
+    func restoreCachedConversations(_ conversations: [Conversation]) {
+        guard self.conversations.isEmpty else { return }
+        self.conversations = conversations
+    }
+
     func load(
         selling: any SellingRepository,
         transactions: any TransactionRepository,

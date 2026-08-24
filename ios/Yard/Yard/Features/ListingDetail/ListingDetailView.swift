@@ -1,8 +1,10 @@
+import SwiftData
 import SwiftUI
 
 struct ListingDetailView: View {
     let listing: Listing
     @Environment(AppEnvironment.self) private var environment
+    @Environment(\.modelContext) private var modelContext
     @State private var isSaved = false
     @State private var isUpdatingSavedState = false
     @State private var actionMessage: String?
@@ -127,13 +129,40 @@ struct ListingDetailView: View {
         let nextValue = !isSaved
         isUpdatingSavedState = true
         isSaved = nextValue
+        MarketplaceLocalStore.setFavorite(
+            nextValue,
+            listing: listing,
+            queueForSync: !environment.connectivity.isConnected,
+            context: modelContext
+        )
+        if !environment.connectivity.isConnected {
+            actionMessage = "Saved on this device. Yard will sync when you are back online."
+            isUpdatingSavedState = false
+            return
+        }
         do {
             try await environment.buyer.setSaved(
                 nextValue, listingID: listing.id, accessToken: token
             )
         } catch {
-            isSaved.toggle()
-            actionMessage = error.buyerMessage
+            if (error as? APIError) == .transport {
+                MarketplaceLocalStore.setFavorite(
+                    nextValue,
+                    listing: listing,
+                    queueForSync: true,
+                    context: modelContext
+                )
+                actionMessage = "Saved on this device. Yard will sync when you are back online."
+            } else {
+                isSaved.toggle()
+                MarketplaceLocalStore.setFavorite(
+                    isSaved,
+                    listing: listing,
+                    queueForSync: false,
+                    context: modelContext
+                )
+                actionMessage = error.buyerMessage
+            }
         }
         isUpdatingSavedState = false
     }

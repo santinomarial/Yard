@@ -1,7 +1,9 @@
+import SwiftData
 import SwiftUI
 
 struct SavedView: View {
     @Environment(AppEnvironment.self) private var environment
+    @Environment(\.modelContext) private var modelContext
     @State private var model = SavedViewModel()
     @State private var showsIntentComposer = false
 
@@ -38,7 +40,10 @@ struct SavedView: View {
         }
         .navigationDestination(for: Listing.self) { ListingDetailView(listing: $0) }
         .navigationDestination(for: BuyingIntent.self) { IntentMatchesView(intent: $0) }
-        .task { await load() }
+        .task {
+            model.restoreCached(MarketplaceLocalStore.cachedFavorites(context: modelContext))
+            await load()
+        }
         .refreshable { await load() }
         .accessibilityIdentifier("savedView")
     }
@@ -72,9 +77,22 @@ struct SavedView: View {
                         .swipeActions {
                             Button("Remove", role: .destructive) {
                                 guard let token = environment.session.accessToken else { return }
+                                if !environment.connectivity.isConnected {
+                                    model.removeCached(listing)
+                                    MarketplaceLocalStore.setFavorite(
+                                        false,
+                                        listing: listing,
+                                        queueForSync: true,
+                                        context: modelContext
+                                    )
+                                    return
+                                }
                                 Task {
                                     await model.remove(
                                         listing, using: environment.buyer, accessToken: token
+                                    )
+                                    MarketplaceLocalStore.replaceFavorites(
+                                        model.listings, context: modelContext
                                     )
                                 }
                             }
@@ -89,6 +107,9 @@ struct SavedView: View {
     private func load() async {
         guard let token = environment.session.accessToken else { return }
         await model.load(using: environment.buyer, accessToken: token)
+        if case .loaded = model.state {
+            MarketplaceLocalStore.replaceFavorites(model.listings, context: modelContext)
+        }
     }
 }
 

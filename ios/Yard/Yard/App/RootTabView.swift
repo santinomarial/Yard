@@ -1,7 +1,9 @@
 import SwiftUI
+import SwiftData
 
 struct RootTabView: View {
     @Environment(AppEnvironment.self) private var environment
+    @Environment(\.modelContext) private var modelContext
     @State private var selectedTab = YardTab.home
 
     var body: some View {
@@ -37,6 +39,17 @@ struct RootTabView: View {
             .tag(YardTab.profile)
         }
         .accessibilityIdentifier("rootTabView")
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if !environment.connectivity.isConnected {
+                Label("Offline · showing saved data", systemImage: "wifi.slash")
+                    .font(.caption.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+                    .background(.orange)
+                    .foregroundStyle(.black)
+                    .accessibilityIdentifier("offlineBanner")
+            }
+        }
         .task {
             await PushRegistration.requestAuthorization()
             if let token = PushRegistration.storedToken { await registerDevice(token) }
@@ -50,6 +63,16 @@ struct RootTabView: View {
             route(url)
         }
         .onOpenURL(perform: route)
+        .task(id: environment.connectivity.isConnected) {
+            guard environment.connectivity.isConnected,
+                  let token = environment.session.accessToken
+            else { return }
+            await MarketplaceLocalStore.syncPendingFavorites(
+                context: modelContext,
+                repository: environment.buyer,
+                accessToken: token
+            )
+        }
     }
 
     private func registerDevice(_ token: String) async {

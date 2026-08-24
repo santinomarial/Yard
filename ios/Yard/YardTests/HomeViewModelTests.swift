@@ -4,6 +4,19 @@ import Testing
 @MainActor
 struct HomeViewModelTests {
     @Test
+    func cachedMarketplaceIsImmediatelyBrowsable() {
+        let model = HomeViewModel()
+
+        model.restoreCached(
+            listings: Listing.previewListings,
+            categories: YardCategory.previewCategories
+        )
+
+        #expect(model.listings == Listing.previewListings)
+        #expect(model.state == .loaded)
+    }
+
+    @Test
     func loadsCategoriesAndListingsTogether() async {
         let model = HomeViewModel()
         let repository = PreviewMarketplaceRepository()
@@ -16,4 +29,3 @@ struct HomeViewModelTests {
         #expect(model.freeListings.map(\.title) == ["Floor Lamp"])
     }
 }
-

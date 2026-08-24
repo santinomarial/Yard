@@ -5,6 +5,16 @@ import Testing
 @MainActor
 struct SavedViewModelTests {
     @Test
+    func cachedFavoriteCanBeRemovedOffline() {
+        let model = SavedViewModel()
+        model.restoreCached(Listing.previewListings)
+
+        model.removeCached(Listing.previewListings[0])
+
+        #expect(model.listings.count == Listing.previewListings.count - 1)
+    }
+
+    @Test
     func loadsSavedListingsAndIntentsTogether() async {
         let repository = BuyerRepositoryStub()
         let model = SavedViewModel()

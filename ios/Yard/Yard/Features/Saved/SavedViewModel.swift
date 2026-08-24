@@ -14,6 +14,17 @@ final class SavedViewModel {
     private(set) var intents: [BuyingIntent] = []
     private(set) var state = SavedLoadState.loading
 
+    func restoreCached(_ listings: [Listing]) {
+        guard self.listings.isEmpty else { return }
+        self.listings = listings
+        if !listings.isEmpty { state = .loaded }
+    }
+
+    func removeCached(_ listing: Listing) {
+        listings.removeAll { $0.id == listing.id }
+        state = .loaded
+    }
+
     func load(using repository: any BuyerRepository, accessToken: String) async {
         state = .loading
         do {

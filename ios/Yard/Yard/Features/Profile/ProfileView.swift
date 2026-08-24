@@ -1,7 +1,9 @@
+import SwiftData
 import SwiftUI
 
 struct ProfileView: View {
     @Environment(AppEnvironment.self) private var environment
+    @Environment(\.modelContext) private var modelContext
     @State private var model = ProfileViewModel()
     @State private var showsEditName = false
     @State private var showsDeleteConfirmation = false
@@ -103,7 +105,12 @@ struct ProfileView: View {
         }
         .navigationTitle("Profile")
         .navigationDestination(for: Listing.self) { ListingDetailView(listing: $0) }
-        .task { await load() }
+        .task {
+            model.restoreCachedConversations(
+                MarketplaceLocalStore.cachedConversations(context: modelContext)
+            )
+            await load()
+        }
         .refreshable { await load() }
         .alert("Delete your Yard account?", isPresented: $showsDeleteConfirmation) {
             Button("Delete account", role: .destructive) {
@@ -149,6 +156,11 @@ struct ProfileView: View {
             transactions: environment.transactions,
             accessToken: token
         )
+        if model.errorMessage == nil {
+            MarketplaceLocalStore.replaceConversations(
+                model.conversations, context: modelContext
+            )
+        }
     }
 
     private func statusColor(_ status: ListingStatus) -> Color {

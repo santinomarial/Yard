@@ -1,7 +1,9 @@
+import SwiftData
 import SwiftUI
 
 struct HomeView: View {
     @Environment(AppEnvironment.self) private var environment
+    @Environment(\.modelContext) private var modelContext
     @State private var model = HomeViewModel()
 
     private let columns = [
@@ -35,7 +37,16 @@ struct HomeView: View {
         .navigationBarTitleDisplayMode(.large)
         .navigationDestination(for: Listing.self) { ListingDetailView(listing: $0) }
         .task {
+            let cached = MarketplaceLocalStore.cachedMarketplace(context: modelContext)
+            model.restoreCached(listings: cached.listings, categories: cached.categories)
             await model.load(using: environment.marketplace)
+            if case .loaded = model.state {
+                MarketplaceLocalStore.replaceMarketplace(
+                    listings: model.listings,
+                    categories: model.categories,
+                    context: modelContext
+                )
+            }
             if let token = environment.session.accessToken {
                 await model.loadRecommendations(using: environment.buyer, accessToken: token)
             }

@@ -20,6 +20,13 @@ final class HomeViewModel {
         listings.filter(\.isFree)
     }
 
+    func restoreCached(listings: [Listing], categories: [YardCategory]) {
+        guard self.listings.isEmpty else { return }
+        self.listings = listings
+        self.categories = categories
+        if !listings.isEmpty { state = .loaded }
+    }
+
     func load(using repository: any MarketplaceRepository) async {
         guard state != .loading else { return }
         state = .loading

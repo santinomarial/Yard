@@ -10,6 +10,7 @@ final class AppEnvironment {
     let transactions: any TransactionRepository
     let safety: any SafetyRepository
     let notifications: any NotificationRepository
+    let connectivity: ConnectivityMonitor
     let session: UserSession
     let apiClient: APIClient
 
@@ -20,6 +21,7 @@ final class AppEnvironment {
         transactions: (any TransactionRepository)? = nil,
         safety: (any SafetyRepository)? = nil,
         notifications: (any NotificationRepository)? = nil,
+        connectivity: ConnectivityMonitor? = nil,
         session: UserSession? = nil,
         apiClient: APIClient? = nil
     ) {
@@ -29,6 +31,7 @@ final class AppEnvironment {
         self.transactions = transactions ?? PreviewTransactionRepository()
         self.safety = safety ?? PreviewSafetyRepository()
         self.notifications = notifications ?? PreviewNotificationRepository()
+        self.connectivity = connectivity ?? ConnectivityMonitor()
         let previewClient = apiClient ?? APIClient(baseURL: URL(string: "http://localhost:8000")!)
         self.apiClient = previewClient
         self.session = session ?? UserSession(
