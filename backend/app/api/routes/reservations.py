@@ -5,8 +5,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
 from app.core.security import CurrentUser
-from app.schemas.reservation import ReservationCreate, ReservationRead
-from app.services.reservations import ReservationError, cancel_reservation, reserve_listing
+from app.schemas.reservation import ReservationCreate, ReservationRead, WaitlistRead
+from app.services.reservations import (
+    ReservationError,
+    cancel_reservation,
+    claim_waitlist_offer,
+    join_waitlist,
+    reserve_listing,
+)
 
 router = APIRouter()
 
@@ -50,6 +56,32 @@ async def cancel(
 ) -> ReservationRead:
     try:
         reservation = await cancel_reservation(session, reservation_id, user.id)
+    except ReservationError as error:
+        raise reservation_http_error(error) from None
+    return ReservationRead.model_validate(reservation)
+
+
+@router.put("/waitlist/{listing_id}", response_model=WaitlistRead)
+async def join(
+    listing_id: uuid.UUID,
+    user: CurrentUser,
+    session: AsyncSession = Depends(get_session),
+) -> WaitlistRead:
+    try:
+        entry = await join_waitlist(session, listing_id, user.id)
+    except ReservationError as error:
+        raise reservation_http_error(error) from None
+    return WaitlistRead.model_validate(entry)
+
+
+@router.post("/waitlist/offers/{entry_id}/claim", response_model=ReservationRead)
+async def claim_offer(
+    entry_id: uuid.UUID,
+    user: CurrentUser,
+    session: AsyncSession = Depends(get_session),
+) -> ReservationRead:
+    try:
+        reservation = await claim_waitlist_offer(session, entry_id, user.id)
     except ReservationError as error:
         raise reservation_http_error(error) from None
     return ReservationRead.model_validate(reservation)

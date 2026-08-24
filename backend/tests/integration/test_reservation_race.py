@@ -6,8 +6,23 @@ import pytest
 from sqlalchemy import select
 
 from app.core.database import SessionFactory
-from app.models import Category, Listing, ListingCondition, ListingStatus, Reservation, User
-from app.services.reservations import ReservationError, reserve_listing
+from app.models import (
+    Category,
+    Listing,
+    ListingCondition,
+    ListingStatus,
+    Reservation,
+    User,
+    WaitlistEntry,
+    WaitlistStatus,
+)
+from app.services.reservations import (
+    ReservationError,
+    cancel_reservation,
+    claim_waitlist_offer,
+    join_waitlist,
+    reserve_listing,
+)
 
 pytestmark = [pytest.mark.integration, pytest.mark.asyncio(loop_scope="module")]
 
@@ -89,3 +104,27 @@ async def test_same_idempotency_key_has_one_logical_effect() -> None:
     reservation_ids = {result.split(":")[1] for result in results if result.startswith("success")}
     assert len(reservation_ids) == 1
     assert sum(result.endswith(":True") for result in results) == 1
+
+
+async def test_waitlist_promotion_keeps_inventory_from_direct_buyers() -> None:
+    listing_id, buyers = await setup_inventory()
+    async with SessionFactory() as session:
+        first, _ = await reserve_listing(session, listing_id, buyers[0], f"first-{uuid.uuid4()}")
+    async with SessionFactory() as session:
+        first_in_line = await join_waitlist(session, listing_id, buyers[1])
+    async with SessionFactory() as session:
+        await join_waitlist(session, listing_id, buyers[2])
+    async with SessionFactory() as session:
+        await cancel_reservation(session, first.id, buyers[0])
+
+    async with SessionFactory() as session:
+        promoted = await session.get(WaitlistEntry, first_in_line.id)
+        listing = await session.get(Listing, listing_id)
+        assert promoted is not None and promoted.status == WaitlistStatus.OFFERED
+        assert listing is not None and listing.status == ListingStatus.RESERVED
+
+    direct = await attempt(listing_id, buyers[3], f"direct-{uuid.uuid4()}")
+    assert direct == "conflict:listing_already_reserved"
+    async with SessionFactory() as session:
+        claimed = await claim_waitlist_offer(session, first_in_line.id, buyers[1])
+        assert claimed.buyer_id == buyers[1]

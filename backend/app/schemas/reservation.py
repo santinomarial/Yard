@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.reservation import ReservationStatus
+from app.models.reservation import ReservationStatus, WaitlistStatus
 
 
 class ReservationCreate(BaseModel):
@@ -21,3 +21,14 @@ class ReservationRead(BaseModel):
     status: ReservationStatus
     expires_at: datetime
     created_at: datetime
+
+
+class WaitlistRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    listing_id: uuid.UUID
+    buyer_id: uuid.UUID
+    status: WaitlistStatus
+    created_at: datetime
+    offer_expires_at: datetime | None

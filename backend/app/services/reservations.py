@@ -5,7 +5,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.listing import Listing, ListingStatus
-from app.models.reservation import Reservation, ReservationStatus
+from app.models.marketplace_event import ListingEvent
+from app.models.reservation import (
+    Reservation,
+    ReservationStatus,
+    WaitlistEntry,
+    WaitlistStatus,
+)
 from app.services.listing_lifecycle import transition_listing
 
 
@@ -13,6 +19,39 @@ class ReservationError(ValueError):
     def __init__(self, code: str, message: str) -> None:
         self.code = code
         super().__init__(message)
+
+
+async def release_or_promote(
+    session: AsyncSession, listing: Listing, actor_id: uuid.UUID, event_type: str
+) -> WaitlistEntry | None:
+    next_entry = await session.scalar(
+        select(WaitlistEntry)
+        .where(
+            WaitlistEntry.listing_id == listing.id,
+            WaitlistEntry.status == WaitlistStatus.WAITING,
+        )
+        .order_by(WaitlistEntry.created_at, WaitlistEntry.id)
+        .limit(1)
+        .with_for_update(skip_locked=True)
+    )
+    if next_entry:
+        now = datetime.now(UTC)
+        next_entry.status = WaitlistStatus.OFFERED
+        next_entry.offered_at = now
+        next_entry.offer_expires_at = now + timedelta(minutes=10)
+        session.add(
+            ListingEvent(
+                listing_id=listing.id,
+                actor_id=actor_id,
+                event_type="WaitlistPromoted",
+                from_status=listing.status.value,
+                to_status=listing.status.value,
+                event_data={"waitlist_entry_id": str(next_entry.id)},
+            )
+        )
+        return next_entry
+    session.add(transition_listing(listing, ListingStatus.ACTIVE, actor_id, event_type))
+    return None
 
 
 async def reserve_listing(
@@ -102,15 +141,7 @@ async def cancel_reservation(
         if listing is None or listing.status != ListingStatus.RESERVED:
             raise ReservationError("stale_listing_state", "The listing state changed.")
         reservation.status = ReservationStatus.CANCELLED
-        session.add(
-            transition_listing(
-                listing,
-                ListingStatus.ACTIVE,
-                actor_id,
-                "ReservationCancelled",
-                {"reservation_id": str(reservation.id)},
-            )
-        )
+        await release_or_promote(session, listing, actor_id, "ReservationCancelled")
     return reservation
 
 
@@ -136,14 +167,89 @@ async def expire_due_reservations(session: AsyncSession, limit: int = 100) -> in
             if listing is None or listing.status != ListingStatus.RESERVED:
                 continue
             reservation.status = ReservationStatus.EXPIRED
-            session.add(
-                transition_listing(
-                    listing,
-                    ListingStatus.ACTIVE,
-                    reservation.buyer_id,
-                    "ReservationExpired",
-                    {"reservation_id": str(reservation.id)},
-                )
-            )
+            await release_or_promote(session, listing, reservation.buyer_id, "ReservationExpired")
             expired += 1
     return expired
+
+
+async def join_waitlist(
+    session: AsyncSession, listing_id: uuid.UUID, buyer_id: uuid.UUID
+) -> WaitlistEntry:
+    async with session.begin():
+        listing = await session.scalar(
+            select(Listing).where(Listing.id == listing_id).with_for_update(of=Listing)
+        )
+        if listing is None or listing.status != ListingStatus.RESERVED:
+            raise ReservationError("waitlist_unavailable", "This listing has no active waitlist.")
+        if listing.seller_id == buyer_id:
+            raise ReservationError("seller_cannot_waitlist", "You cannot join your own waitlist.")
+        existing = await session.scalar(
+            select(WaitlistEntry).where(
+                WaitlistEntry.listing_id == listing_id, WaitlistEntry.buyer_id == buyer_id
+            )
+        )
+        if existing:
+            return existing
+        entry = WaitlistEntry(
+            id=uuid.uuid4(),
+            listing_id=listing_id,
+            buyer_id=buyer_id,
+            status=WaitlistStatus.WAITING,
+        )
+        session.add(entry)
+        session.add(
+            ListingEvent(
+                listing_id=listing_id,
+                actor_id=buyer_id,
+                event_type="WaitlistJoined",
+                from_status=listing.status.value,
+                to_status=listing.status.value,
+                event_data={"waitlist_entry_id": str(entry.id)},
+            )
+        )
+    return entry
+
+
+async def claim_waitlist_offer(
+    session: AsyncSession, entry_id: uuid.UUID, buyer_id: uuid.UUID
+) -> Reservation:
+    async with session.begin():
+        entry = await session.scalar(
+            select(WaitlistEntry).where(WaitlistEntry.id == entry_id).with_for_update()
+        )
+        now = datetime.now(UTC)
+        if (
+            entry is None
+            or entry.buyer_id != buyer_id
+            or entry.status != WaitlistStatus.OFFERED
+            or entry.offer_expires_at is None
+            or entry.offer_expires_at < now
+        ):
+            raise ReservationError("waitlist_offer_unavailable", "This offer is unavailable.")
+        listing = await session.scalar(
+            select(Listing).where(Listing.id == entry.listing_id).with_for_update(of=Listing)
+        )
+        if listing is None or listing.status != ListingStatus.RESERVED:
+            raise ReservationError("stale_listing_state", "The listing state changed.")
+        reservation = Reservation(
+            id=uuid.uuid4(),
+            listing_id=listing.id,
+            buyer_id=buyer_id,
+            seller_id=listing.seller_id,
+            status=ReservationStatus.ACTIVE,
+            idempotency_key=f"waitlist:{entry.id}",
+            expires_at=now + timedelta(minutes=30),
+        )
+        entry.status = WaitlistStatus.CLAIMED
+        session.add(reservation)
+        session.add(
+            ListingEvent(
+                listing_id=listing.id,
+                actor_id=buyer_id,
+                event_type="WaitlistOfferClaimed",
+                from_status=listing.status.value,
+                to_status=listing.status.value,
+                event_data={"reservation_id": str(reservation.id)},
+            )
+        )
+    return reservation

@@ -43,3 +43,27 @@ class Reservation(Base):
         DateTime(timezone=True), default=utc_now, onupdate=utc_now
     )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class WaitlistStatus(StrEnum):
+    WAITING = "waiting"
+    OFFERED = "offered"
+    CLAIMED = "claimed"
+    REMOVED = "removed"
+
+
+class WaitlistEntry(Base):
+    __tablename__ = "waitlist_entries"
+    __table_args__ = (UniqueConstraint("listing_id", "buyer_id", name="uq_waitlist_listing_buyer"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("listings.id"), index=True)
+    buyer_id: Mapped[uuid.UUID] = mapped_column(index=True)
+    status: Mapped[WaitlistStatus] = mapped_column(
+        Enum(WaitlistStatus, name="waitlist_status", native_enum=False), index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    offered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    offer_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
