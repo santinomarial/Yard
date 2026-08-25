@@ -51,7 +51,8 @@ struct SellView: View {
     }
 
     private var photoSection: some View {
-        Section {
+        let photoButtonTitle = model.photos.isEmpty ? "Choose photos" : "Change photos"
+        return Section {
             HStack {
                 PhotosPicker(
                     selection: $pickerItems,
@@ -59,7 +60,7 @@ struct SellView: View {
                     matching: .images
                 ) {
                     Label(
-                        model.photos.isEmpty ? "Choose photos" : "Change photos",
+                        photoButtonTitle,
                         systemImage: "photo.on.rectangle.angled"
                     )
                 }

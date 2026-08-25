@@ -14,7 +14,8 @@ struct HomeView: View {
     var body: some View {
         Group {
             switch model.state {
-            case .idle, .loading where model.listings.isEmpty:
+            case .idle where model.listings.isEmpty,
+                 .loading where model.listings.isEmpty:
                 ProgressView("Loading nearby items…")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             case let .failed(message) where model.listings.isEmpty:

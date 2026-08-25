@@ -23,6 +23,7 @@ enum YardTheme {
     }
 
     enum Radius {
+        static let small: CGFloat = 10
         static let card: CGFloat = 18
         static let button: CGFloat = 14
     }
@@ -41,4 +42,3 @@ struct YardPrimaryButtonStyle: ButtonStyle {
             .animation(.snappy(duration: 0.15), value: configuration.isPressed)
     }
 }
-

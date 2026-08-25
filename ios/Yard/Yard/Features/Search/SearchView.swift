@@ -19,7 +19,8 @@ struct SearchView: View {
 
         Group {
             switch model.state {
-            case .idle, .loading where model.results.isEmpty:
+            case .idle where model.results.isEmpty,
+                 .loading where model.results.isEmpty:
                 ProgressView("Searching Yard…")
             case .empty:
                 ContentUnavailableView.search(text: model.filters.query)

@@ -31,21 +31,13 @@ actor PickupLiveActivityManager {
         let state = contentState(for: pickup)
         let endDate = min(reservationExpiresAt, pickup.proposedFor.addingTimeInterval(7_200))
         let content = ActivityContent(state: state, staleDate: endDate)
-        if let existing = activity(for: pickup.reservationID) {
-            await existing.update(content)
-        } else if ActivityAuthorizationInfo().areActivitiesEnabled {
-            let attributes = PickupActivityAttributes(
-                reservationID: pickup.reservationID,
-                itemTitle: "Yard pickup",
-                meetingZone: pickup.meetingZone,
-                proposedFor: pickup.proposedFor
-            )
-            do {
-                _ = try Activity.request(attributes: attributes, content: content, pushType: nil)
-            } catch {
-                // Pickup coordination remains fully functional when Live Activities are unavailable.
-            }
-        }
+        let attributes = PickupActivityAttributes(
+            reservationID: pickup.reservationID,
+            itemTitle: "Yard pickup",
+            meetingZone: pickup.meetingZone,
+            proposedFor: pickup.proposedFor
+        )
+        await Self.startOrUpdateActivity(attributes: attributes, content: content)
         scheduleExpiration(reservationID: pickup.reservationID, at: endDate, state: state)
     }
 
@@ -69,17 +61,37 @@ actor PickupLiveActivityManager {
     ) async {
         expirationTasks[reservationID]?.cancel()
         expirationTasks[reservationID] = nil
-        guard let existing = activity(for: reservationID) else { return }
+        await Self.endActivity(reservationID: reservationID, finalState: finalState)
+    }
+
+    nonisolated private static func startOrUpdateActivity(
+        attributes: PickupActivityAttributes,
+        content: ActivityContent<PickupActivityAttributes.ContentState>
+    ) async {
+        if let existing = Activity<PickupActivityAttributes>.activities.first(where: {
+            $0.attributes.reservationID == attributes.reservationID
+        }) {
+            await existing.update(content)
+        } else if ActivityAuthorizationInfo().areActivitiesEnabled {
+            do {
+                _ = try Activity.request(attributes: attributes, content: content, pushType: nil)
+            } catch {
+                // Pickup coordination remains fully functional when Live Activities are unavailable.
+            }
+        }
+    }
+
+    nonisolated private static func endActivity(
+        reservationID: UUID,
+        finalState: PickupActivityAttributes.ContentState
+    ) async {
+        guard let existing = Activity<PickupActivityAttributes>.activities.first(where: {
+            $0.attributes.reservationID == reservationID
+        }) else { return }
         await existing.end(
             ActivityContent(state: finalState, staleDate: .now),
             dismissalPolicy: .immediate
         )
-    }
-
-    private func activity(for reservationID: UUID) -> Activity<PickupActivityAttributes>? {
-        Activity<PickupActivityAttributes>.activities.first {
-            $0.attributes.reservationID == reservationID
-        }
     }
 
     private func contentState(

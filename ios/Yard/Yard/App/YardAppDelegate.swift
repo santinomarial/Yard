@@ -9,7 +9,7 @@ extension Notification.Name {
 
 @MainActor
 final class YardAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
-    static let deviceTokenDefaultsKey = "yard.apns.device-token"
+    nonisolated static let deviceTokenDefaultsKey = "yard.apns.device-token"
 
     func application(
         _ application: UIApplication,
@@ -28,7 +28,7 @@ final class YardAppDelegate: NSObject, UIApplicationDelegate, UNUserNotification
         NotificationCenter.default.post(name: .yardDeviceTokenUpdated, object: token)
     }
 
-    func userNotificationCenter(
+    nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse
     ) async {
