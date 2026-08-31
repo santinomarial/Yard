@@ -57,11 +57,11 @@ targets:
         CURRENT_PROJECT_VERSION: 1
         TARGETED_DEVICE_FAMILY: "1"
         SUPPORTS_MACCATALYST: false
-        YARD_API_BASE_URL: http://localhost:8000
+        YARD_API_BASE_URL: http://127.0.0.1:8000
       configs:
         Debug:
           CODE_SIGN_ENTITLEMENTS: Yard/Resources/Yard.entitlements
-          YARD_API_BASE_URL: http://localhost:8000
+          YARD_API_BASE_URL: http://127.0.0.1:8000
         Release:
           CODE_SIGN_ENTITLEMENTS: Yard/Resources/Yard-Release.entitlements
           YARD_API_BASE_URL: https://api.yard.market

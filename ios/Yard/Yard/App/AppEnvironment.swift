@@ -32,7 +32,7 @@ final class AppEnvironment {
         self.safety = safety ?? PreviewSafetyRepository()
         self.notifications = notifications ?? PreviewNotificationRepository()
         self.connectivity = connectivity ?? ConnectivityMonitor()
-        let previewClient = apiClient ?? APIClient(baseURL: URL(string: "http://localhost:8000")!)
+        let previewClient = apiClient ?? APIClient(baseURL: URL(string: "http://127.0.0.1:8000")!)
         self.apiClient = previewClient
         self.session = session ?? UserSession(
             repository: PreviewAuthenticationRepository(),
@@ -48,7 +48,7 @@ final class AppEnvironment {
             baseURL = url
         } else {
             #if DEBUG
-            baseURL = URL(string: "http://localhost:8000")!
+            baseURL = URL(string: "http://127.0.0.1:8000")!
             #else
             preconditionFailure("A production YARD_API_BASE_URL must be configured")
             #endif
