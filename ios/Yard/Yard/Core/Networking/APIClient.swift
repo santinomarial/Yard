@@ -221,9 +221,59 @@ private struct EmptyBody: Encodable, Sendable {}
 extension JSONDecoder {
     static var yard: JSONDecoder {
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        decoder.dateDecodingStrategy = .iso8601
+        decoder.keyDecodingStrategy = .custom { codingPath in
+            let rawKey = codingPath.last?.stringValue ?? ""
+            return YardJSONKey(stringValue: rawKey.yardPropertyName)
+        }
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let value = try container.decode(String.self)
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = formatter.date(from: value) {
+                return date
+            }
+            formatter.formatOptions = [.withInternetDateTime]
+            if let date = formatter.date(from: value) {
+                return date
+            }
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Expected an ISO-8601 timestamp"
+            )
+        }
         return decoder
+    }
+}
+
+private struct YardJSONKey: CodingKey {
+    let stringValue: String
+    let intValue: Int? = nil
+
+    init(stringValue: String) {
+        self.stringValue = stringValue
+    }
+
+    init?(intValue: Int) {
+        return nil
+    }
+}
+
+private extension String {
+    var yardPropertyName: String {
+        let words = split(separator: "_")
+        guard let first = words.first, words.count > 1 else { return self }
+        return words.dropFirst().reduce(String(first)) { name, word in
+            let component: String
+            switch word.lowercased() {
+            case "id": component = "ID"
+            case "ids": component = "IDs"
+            case "url": component = "URL"
+            default:
+                component = word.prefix(1).uppercased() + word.dropFirst()
+            }
+            return name + component
+        }
     }
 }
 

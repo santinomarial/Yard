@@ -68,6 +68,31 @@ struct ModelDecodingTests {
     }
 
     @Test
+    func decodesBackendFractionalSecondTimestamps() throws {
+        let json = #"""
+        {
+          "access_token": "development-token",
+          "token_type": "bearer",
+          "user": {
+            "id": "3ace4ce1-ebd6-45aa-9b2a-14d6fe88ed90",
+            "display_name": "Alex Rivers",
+            "harvard_email_verified": false,
+            "marketplace_access_granted": false,
+            "access_method": "none",
+            "member_since": "2026-08-24T09:56:17.509839Z",
+            "suspended": false,
+            "admin": false
+          }
+        }
+        """#.data(using: .utf8)!
+
+        let response = try JSONDecoder.yard.decode(AuthenticationResponse.self, from: json)
+
+        #expect(response.user.displayName == "Alex Rivers")
+        #expect(response.user.memberSince.timeIntervalSince1970 > 0)
+    }
+
+    @Test
     func parsesCustomAndUniversalMarketplaceLinks() throws {
         let id = UUID(uuidString: "11408445-3907-55C2-848E-8AD314EB1C7B")!
 
