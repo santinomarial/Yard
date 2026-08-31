@@ -31,7 +31,7 @@ final class SearchViewModel {
         if filters.freeOnly { count += 1 }
         if filters.pickupZone != nil { count += 1 }
         if filters.maximumAgeDays != nil { count += 1 }
-        if filters.sort != .newest { count += 1 }
+        if filters.sort != .recommended { count += 1 }
         return count
     }
 
